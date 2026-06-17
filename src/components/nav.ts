@@ -25,17 +25,16 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { label: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { label: "Produits", href: "/produits", icon: Package },
-  { label: "Achats", href: "/achats", icon: ShoppingCart, comingSoon: true },
-  { label: "Ventes", href: "/ventes", icon: Receipt, comingSoon: true },
-  { label: "Frais", href: "/frais", icon: Wallet, comingSoon: true },
-  { label: "Stock", href: "/stock", icon: Boxes, comingSoon: true },
+  { label: "Achats", href: "/achats", icon: ShoppingCart },
+  { label: "Ventes", href: "/ventes", icon: Receipt },
+  { label: "Frais", href: "/frais", icon: Wallet },
+  { label: "Stock", href: "/stock", icon: Boxes },
   { label: "Factures", href: "/factures", icon: FileText, comingSoon: true },
-  { label: "Clients", href: "/clients", icon: Users, comingSoon: true },
+  { label: "Clients", href: "/clients", icon: Users },
   {
     label: "Fournisseurs",
     href: "/fournisseurs",
     icon: Truck,
-    comingSoon: true,
   },
   { label: "Rapports", href: "/rapports", icon: BarChart3, comingSoon: true },
 ];

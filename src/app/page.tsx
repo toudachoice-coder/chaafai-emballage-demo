@@ -11,16 +11,32 @@ import {
   Wallet,
   ShoppingCart,
   Receipt,
-  ArrowUpRight,
-  ArrowDownRight,
-  Settings2,
+  Trophy,
+  Activity,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StatCard } from "@/components/StatCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useDatabase } from "@/hooks/useDatabase";
-import { getDashboardStats, categoryName } from "@/lib/store";
+import {
+  getDashboardStats,
+  getTopProducts,
+  getRecentOperations,
+  categoryName,
+  clientName,
+  resteOf,
+} from "@/lib/store";
 import { formatMAD, formatDate } from "@/lib/format";
+
+const opStyles = {
+  vente: { label: "Vente", cls: "bg-brand-50 text-brand-700", icon: Receipt },
+  achat: {
+    label: "Achat",
+    cls: "bg-accent-50 text-accent-700",
+    icon: ShoppingCart,
+  },
+  frais: { label: "Frais", cls: "bg-slate-100 text-slate-600", icon: Wallet },
+} as const;
 
 export default function DashboardPage() {
   const { db, ready } = useDatabase();
@@ -37,15 +53,18 @@ export default function DashboardPage() {
     [db]
   );
 
-  const unpaidInvoices = useMemo(
-    () => (db ? db.invoices.filter((i) => i.status !== "paid") : []),
+  const unpaidSales = useMemo(
+    () =>
+      db
+        ? db.sales
+            .filter((s) => resteOf(s) > 0)
+            .sort((a, b) => (a.date < b.date ? 1 : -1))
+        : [],
     [db]
   );
 
-  const recentMovements = useMemo(
-    () => (db ? db.movements.slice(0, 6) : []),
-    [db]
-  );
+  const topProducts = useMemo(() => (db ? getTopProducts(db, 5) : []), [db]);
+  const recentOps = useMemo(() => (db ? getRecentOperations(db, 8) : []), [db]);
 
   return (
     <AppShell
@@ -109,11 +128,13 @@ export default function DashboardPage() {
               tone="slate"
             />
             <StatCard
-              label="Factures impayées"
-              value={formatMAD(stats.unpaidInvoicesAmount)}
-              hint={`${stats.unpaidInvoicesCount} facture(s)`}
+              label="Ventes impayées"
+              value={formatMAD(stats.unpaidSalesAmount)}
+              hint={`${stats.unpaidSalesCount} vente(s) · à payer fourn. ${formatMAD(
+                stats.supplierPayables
+              )}`}
               icon={FileWarning}
-              tone={stats.unpaidInvoicesCount > 0 ? "red" : "slate"}
+              tone={stats.unpaidSalesCount > 0 ? "red" : "slate"}
             />
           </div>
 
@@ -122,9 +143,7 @@ export default function DashboardPage() {
             <section className="card">
               <SectionHeader
                 title="Alertes de stock bas"
-                icon={
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                }
+                icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
                 action={
                   <Link
                     href="/produits"
@@ -155,10 +174,92 @@ export default function DashboardPage() {
                           {categoryName(db, p.categoryId)}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <span className="badge bg-amber-50 text-amber-700">
-                          {p.stock} / {p.minStock} {p.unit.split(" ")[0]}
+                      <span className="badge bg-amber-50 text-amber-700">
+                        {p.stock} / {p.minStock} {p.unit.split(" ")[0]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* Unpaid sales */}
+            <section className="card">
+              <SectionHeader
+                title="Ventes impayées"
+                icon={<FileWarning className="h-5 w-5 text-red-500" />}
+                action={
+                  <Link
+                    href="/ventes"
+                    className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                  >
+                    Voir les ventes
+                  </Link>
+                }
+              />
+              {unpaidSales.length === 0 ? (
+                <EmptyState
+                  title="Tout est réglé"
+                  description="Aucune vente en attente de paiement."
+                  icon={<Receipt className="h-8 w-8" />}
+                />
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {unpaidSales.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex items-center justify-between gap-4 px-5 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-800">
+                          {clientName(db, s.clientId)}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {formatDate(s.date)} · total {formatMAD(s.total)}
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold text-red-600">
+                        {formatMAD(resteOf(s))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* Top products */}
+            <section className="card">
+              <SectionHeader
+                title="Produits les plus vendus"
+                icon={<Trophy className="h-5 w-5 text-amber-500" />}
+              />
+              {topProducts.length === 0 ? (
+                <EmptyState
+                  title="Aucune vente"
+                  description="Le classement apparaîtra après vos premières ventes."
+                />
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {topProducts.map((t, i) => (
+                    <li
+                      key={t.productId}
+                      className="flex items-center justify-between gap-4 px-5 py-3"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">
+                          {i + 1}
                         </span>
+                        <p className="truncate text-sm font-medium text-slate-800">
+                          {t.name}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-slate-800">
+                          {t.qty} u.
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {formatMAD(t.revenue)}
+                        </p>
                       </div>
                     </li>
                   ))}
@@ -166,53 +267,43 @@ export default function DashboardPage() {
               )}
             </section>
 
-            {/* Unpaid invoices */}
+            {/* Recent operations */}
             <section className="card">
               <SectionHeader
-                title="Factures impayées"
-                icon={<FileWarning className="h-5 w-5 text-red-500" />}
+                title="Opérations récentes"
+                icon={<Activity className="h-5 w-5 text-brand-600" />}
               />
-              {unpaidInvoices.length === 0 ? (
+              {recentOps.length === 0 ? (
                 <EmptyState
-                  title="Tout est réglé"
-                  description="Aucune facture en attente de paiement."
-                  icon={<Receipt className="h-8 w-8" />}
+                  title="Aucune opération"
+                  description="Vos ventes, achats et frais apparaîtront ici."
                 />
               ) : (
                 <ul className="divide-y divide-slate-100">
-                  {unpaidInvoices.map((inv) => {
-                    const client = db.clients.find(
-                      (c) => c.id === inv.clientId
-                    );
+                  {recentOps.map((op) => {
+                    const style = opStyles[op.kind];
+                    const Icon = style.icon;
                     return (
                       <li
-                        key={inv.id}
+                        key={`${op.kind}-${op.id}`}
                         className="flex items-center justify-between gap-4 px-5 py-3"
                       >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-800">
-                            {inv.number}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {client?.name ?? "—"} · {formatDate(inv.date)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3 text-right">
-                          <span className="text-sm font-semibold text-slate-800">
-                            {formatMAD(inv.amount)}
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className={`rounded-lg p-1.5 ${style.cls}`}>
+                            <Icon className="h-4 w-4" />
                           </span>
-                          <span
-                            className={`badge ${
-                              inv.status === "partial"
-                                ? "bg-amber-50 text-amber-700"
-                                : "bg-red-50 text-red-700"
-                            }`}
-                          >
-                            {inv.status === "partial"
-                              ? "Partiel"
-                              : "Impayée"}
-                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-800">
+                              {op.label}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {style.label} · {formatDate(op.date)}
+                            </p>
+                          </div>
                         </div>
+                        <span className="text-sm font-semibold text-slate-800">
+                          {formatMAD(op.amount)}
+                        </span>
                       </li>
                     );
                   })}
@@ -220,79 +311,6 @@ export default function DashboardPage() {
               )}
             </section>
           </div>
-
-          {/* Recent stock movements */}
-          <section className="card">
-            <SectionHeader
-              title="Derniers mouvements de stock"
-              icon={<Boxes className="h-5 w-5 text-brand-600" />}
-            />
-            {recentMovements.length === 0 ? (
-              <EmptyState
-                title="Aucun mouvement"
-                description="Les entrées et sorties de stock apparaîtront ici."
-              />
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {recentMovements.map((m) => {
-                  const product = db.products.find(
-                    (p) => p.id === m.productId
-                  );
-                  const isIn = m.type === "in";
-                  const isOut = m.type === "out";
-                  return (
-                    <li
-                      key={m.id}
-                      className="flex items-center justify-between gap-4 px-5 py-3"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <span
-                          className={`rounded-lg p-1.5 ${
-                            isIn
-                              ? "bg-brand-50 text-brand-700"
-                              : isOut
-                              ? "bg-accent-50 text-accent-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {isIn ? (
-                            <ArrowDownRight className="h-4 w-4" />
-                          ) : isOut ? (
-                            <ArrowUpRight className="h-4 w-4" />
-                          ) : (
-                            <Settings2 className="h-4 w-4" />
-                          )}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-800">
-                            {product?.name ?? "Produit supprimé"}
-                          </p>
-                          <p className="text-xs text-slate-500">{m.reason}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span
-                          className={`text-sm font-semibold ${
-                            isIn
-                              ? "text-brand-700"
-                              : isOut
-                              ? "text-accent-700"
-                              : "text-slate-600"
-                          }`}
-                        >
-                          {isIn ? "+" : isOut ? "−" : "±"}
-                          {m.qty}
-                        </span>
-                        <p className="text-xs text-slate-400">
-                          {formatDate(m.date)}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
         </div>
       )}
     </AppShell>
