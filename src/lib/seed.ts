@@ -1,4 +1,13 @@
-import type { Database } from "./types";
+import type {
+  Client,
+  Database,
+  Expense,
+  Product,
+  Purchase,
+  Sale,
+  StockMovement,
+  Supplier,
+} from "./types";
 
 // Stable ids for seed data so cross-references (movements, sales, invoices)
 // stay consistent on first load.
@@ -34,7 +43,7 @@ export function createSeedDatabase(): Database {
     { id: CAT.autres, name: "Autres", createdAt: iso(40) },
   ];
 
-  const products = [
+  const products: Product[] = [
     {
       id: "prod_boite",
       name: "Boîte alimentaire plastique",
@@ -125,28 +134,33 @@ export function createSeedDatabase(): Database {
     },
   ].map((p) => ({ ...p, createdAt: iso(35), updatedAt: iso(2) }));
 
-  const clients = [
+  const clients: Client[] = [
     {
       id: "cli_baraka",
       name: "Snack Al Baraka",
+      type: "Snack",
       contact: "M. Rachid",
       phone: "0661-223344",
       email: "contact@albaraka.ma",
       address: "Av. Hassan II, Casablanca",
+      ice: "001523487000045",
       createdAt: iso(30),
     },
     {
       id: "cli_atlas",
       name: "Café Atlas",
+      type: "Café",
       contact: "Mme Salma",
       phone: "0662-556677",
       email: "cafe.atlas@gmail.com",
       address: "Rue de Fès, Rabat",
+      ice: "001876234000067",
       createdAt: iso(28),
     },
     {
       id: "cli_amine",
       name: "Pâtisserie Amine",
+      type: "Pâtisserie",
       contact: "M. Amine",
       phone: "0663-889900",
       email: "patisserie.amine@gmail.com",
@@ -156,36 +170,43 @@ export function createSeedDatabase(): Database {
     {
       id: "cli_salam",
       name: "Supermarché Salam",
+      type: "Supermarché",
       contact: "Service achats",
       phone: "0664-112233",
       email: "achats@salam.ma",
       address: "Zone Industrielle, Tanger",
+      ice: "001998123000012",
       createdAt: iso(20),
     },
   ];
 
-  const suppliers = [
+  const suppliers: Supplier[] = [
     {
       id: "sup_carton",
       name: "Fournisseur Carton Maroc",
+      mainCategory: "Emballage Carton",
       contact: "M. Tazi",
       phone: "0522-334455",
       email: "ventes@cartonmaroc.ma",
       address: "Zone Industrielle Sidi Bernoussi, Casablanca",
+      ice: "002145698000033",
       createdAt: iso(45),
     },
     {
       id: "sup_plastique",
       name: "Plastique Pro",
+      mainCategory: "Emballage Alimentaire",
       contact: "Mme Nadia",
       phone: "0522-667788",
       email: "commande@plastiquepro.ma",
       address: "Ain Sebaa, Casablanca",
+      ice: "002367412000088",
       createdAt: iso(45),
     },
     {
       id: "sup_papier",
       name: "Papier & Hygiène Distribution",
+      mainCategory: "Hygiène & Protection",
       contact: "M. Karim",
       phone: "0537-445566",
       email: "info@papierhygiene.ma",
@@ -194,7 +215,7 @@ export function createSeedDatabase(): Database {
     },
   ];
 
-  const purchases = [
+  const purchases: Purchase[] = [
     {
       id: "pur_1",
       supplierId: "sup_carton",
@@ -213,6 +234,9 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 50 * 35 + 40 * 20,
+      status: "partial",
+      paidAmount: 1500,
+      invoiceNumber: "FC-2026-0145",
       date: iso(14),
       createdAt: iso(14),
     },
@@ -234,6 +258,9 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 100 * 28 + 60 * 16,
+      status: "paid",
+      paidAmount: 100 * 28 + 60 * 16,
+      invoiceNumber: "PP-2026-0312",
       date: iso(9),
       createdAt: iso(9),
     },
@@ -255,12 +282,14 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 40 * 45 + 50 * 22,
+      status: "unpaid",
+      paidAmount: 0,
       date: iso(5),
       createdAt: iso(5),
     },
   ];
 
-  const sales = [
+  const sales: Sale[] = [
     {
       id: "sal_1",
       clientId: "cli_baraka",
@@ -279,7 +308,8 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 30 * 42 + 20 * 27,
-      status: "paid" as const,
+      status: "paid",
+      paidAmount: 30 * 42 + 20 * 27,
       date: iso(8),
       createdAt: iso(8),
     },
@@ -295,7 +325,8 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 35 * 55,
-      status: "unpaid" as const,
+      status: "unpaid",
+      paidAmount: 0,
       date: iso(4),
       createdAt: iso(4),
     },
@@ -317,7 +348,8 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 60 * 49 + 18 * 68,
-      status: "partial" as const,
+      status: "partial",
+      paidAmount: 2000,
       date: iso(2),
       createdAt: iso(2),
     },
@@ -339,18 +371,20 @@ export function createSeedDatabase(): Database {
         },
       ],
       total: 25 * 33 + 15 * 38,
-      status: "paid" as const,
+      status: "paid",
+      paidAmount: 25 * 33 + 15 * 38,
       date: iso(1),
       createdAt: iso(1),
     },
   ];
 
-  const expenses = [
+  const expenses: Expense[] = [
     {
       id: "exp_1",
       label: "Transport / Livraison",
-      category: "Logistique",
+      category: "Transport",
       amount: 850,
+      paymentMethod: "Espèces",
       date: iso(7),
       createdAt: iso(7),
     },
@@ -359,14 +393,16 @@ export function createSeedDatabase(): Database {
       label: "Loyer dépôt",
       category: "Loyer",
       amount: 3500,
+      paymentMethod: "Virement",
       date: iso(6),
       createdAt: iso(6),
     },
     {
       id: "exp_3",
-      label: "Électricité",
-      category: "Charges",
+      label: "Facture électricité",
+      category: "Électricité",
       amount: 620,
+      paymentMethod: "Chèque",
       date: iso(3),
       createdAt: iso(3),
     },
@@ -409,14 +445,16 @@ export function createSeedDatabase(): Database {
   ];
 
   // Derive stock movements from the seeded purchases (in) and sales (out).
-  const movements = [
+  const movements: StockMovement[] = [
     ...purchases.flatMap((p) =>
       p.items.map((it, idx) => ({
         id: `mov_p_${p.id}_${idx}`,
         productId: it.productId,
         type: "in" as const,
+        kind: "achat" as const,
         qty: it.qty,
-        reason: `Achat ${p.id.toUpperCase()}`,
+        reason: `Achat ${p.invoiceNumber ?? p.id}`,
+        reference: p.id,
         date: p.date,
         createdAt: p.date,
       }))
@@ -426,8 +464,10 @@ export function createSeedDatabase(): Database {
         id: `mov_s_${s.id}_${idx}`,
         productId: it.productId,
         type: "out" as const,
+        kind: "vente" as const,
         qty: it.qty,
-        reason: `Vente ${s.id.toUpperCase()}`,
+        reason: `Vente ${s.id}`,
+        reference: s.id,
         date: s.date,
         createdAt: s.date,
       }))
