@@ -1,0 +1,32 @@
+"use client";
+
+import React, { useState } from "react";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
+
+interface AppShellProps {
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+/** Page chrome: responsive sidebar + sticky header + scrollable content. */
+export function AppShell({ title, subtitle, actions, children }: AppShellProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen">
+      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <div className="lg:pl-72">
+        <Header
+          title={title}
+          subtitle={subtitle}
+          actions={actions}
+          onOpenMenu={() => setMenuOpen(true)}
+        />
+        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+      </div>
+    </div>
+  );
+}
