@@ -79,3 +79,34 @@ body {
 .animate-in {
   animation: chaafai-in 0.18s ease-out;
 }
+
+/* Printing: show only the element flagged `.print-area`, hide everything
+   else (sidebar, header, modal chrome, buttons marked `.no-print`). */
+@media print {
+  body {
+    background: #fff;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+}

@@ -10,6 +10,9 @@ import type {
   Client,
   Database,
   Expense,
+  Invoice,
+  InvoiceStatus,
+  LineItem,
   MovementKind,
   MovementType,
   PaymentStatus,
@@ -94,6 +97,11 @@ function migrate(db: Database): Database {
           : s.status === "paid"
           ? s.total
           : 0,
+    })),
+    invoices: db.invoices.map((inv) => ({
+      ...inv,
+      docStatus: inv.docStatus ?? "Validée",
+      tvaRate: typeof inv.tvaRate === "number" ? inv.tvaRate : 0,
     })),
   };
 }
@@ -731,6 +739,24 @@ export function deleteSale(id: string): OpResult {
       if (prod) prod.stock += item.qty;
     }
 
+    // Any linked invoice is kept for history but marked "Annulée", with a
+    // snapshot so it still renders after the sale is gone.
+    const invoices = db.invoices.map((inv) => {
+      if (inv.saleId !== id) return inv;
+      return {
+        ...inv,
+        docStatus: "Annulée" as const,
+        snapshot: {
+          items: existing.items,
+          discount: existing.discount,
+          total: existing.total,
+          paidAmount: paidOf(existing),
+          paymentStatus: existing.status,
+          clientName: clientName(db, existing.clientId),
+        },
+      };
+    });
+
     return {
       commit: true,
       next: {
@@ -738,6 +764,7 @@ export function deleteSale(id: string): OpResult {
         products,
         sales: db.sales.filter((s) => s.id !== id),
         movements: db.movements.filter((m) => m.reference !== id),
+        invoices,
       },
       result: { ok: true },
     };
@@ -768,6 +795,126 @@ export function deleteExpense(id: string) {
     ...db,
     expenses: db.expenses.filter((e) => e.id !== id),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Invoices (Factures) — generated from sales, numbers stay stable
+// ---------------------------------------------------------------------------
+
+function invoiceSequence(num: string): number {
+  const m = num.match(/(\d+)\s*$/);
+  return m ? Number(m[1]) : 0;
+}
+
+export function formatInvoiceNumber(year: number, seq: number): string {
+  return `FAC-${year}-${String(seq).padStart(4, "0")}`;
+}
+
+function nextInvoiceSequence(db: Database): number {
+  const max = db.invoices.reduce(
+    (acc, inv) => Math.max(acc, invoiceSequence(inv.number)),
+    0
+  );
+  return max + 1;
+}
+
+/**
+ * Lazily creates a stable invoice for every sale that doesn't have one yet.
+ * Existing invoice numbers are never reassigned. Returns true if anything
+ * was created.
+ */
+export function ensureInvoices(): boolean {
+  const db = getDB();
+  const linked = new Set(
+    db.invoices.map((i) => i.saleId).filter((x): x is string => Boolean(x))
+  );
+  const missing = db.sales
+    .filter((s) => !linked.has(s.id))
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+  if (missing.length === 0) return false;
+
+  let seq = nextInvoiceSequence(db);
+  const created: Invoice[] = missing.map((s) => ({
+    id: uid("inv"),
+    number: formatInvoiceNumber(new Date(s.date).getFullYear(), seq++),
+    saleId: s.id,
+    clientId: s.clientId,
+    amount: s.total,
+    status: s.status,
+    docStatus: "Validée",
+    tvaRate: 0,
+    date: s.date,
+    createdAt: nowIso(),
+  }));
+  mutate((d) => ({ ...d, invoices: [...d.invoices, ...created] }));
+  return true;
+}
+
+export function updateInvoice(
+  id: string,
+  patch: Partial<Pick<Invoice, "docStatus" | "tvaRate" | "notes">>
+) {
+  mutate((db) => ({
+    ...db,
+    invoices: db.invoices.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+  }));
+}
+
+export interface InvoiceView {
+  invoice: Invoice;
+  client?: Client;
+  clientName: string;
+  docStatus: InvoiceStatus;
+  items: LineItem[];
+  discount: number;
+  totalHT: number;
+  tvaRate: number;
+  tvaAmount: number;
+  totalTTC: number;
+  paid: number;
+  reste: number;
+  paymentStatus: PaymentStatus;
+  saleExists: boolean;
+}
+
+/** Computes the live, display-ready figures for an invoice. */
+export function invoiceView(db: Database, invoice: Invoice): InvoiceView {
+  const sale = invoice.saleId
+    ? db.sales.find((s) => s.id === invoice.saleId)
+    : undefined;
+  const snap = invoice.snapshot;
+
+  const items = sale ? sale.items : snap?.items ?? [];
+  const discount = sale ? sale.discount ?? 0 : snap?.discount ?? 0;
+  const totalHT = sale ? sale.total : snap?.total ?? invoice.amount;
+  const tvaRate = invoice.tvaRate ?? 0;
+  const tvaAmount = totalHT * tvaRate;
+  const totalTTC = totalHT + tvaAmount;
+  const paymentStatus = sale
+    ? sale.status
+    : snap?.paymentStatus ?? invoice.status;
+  const paid = sale ? paidOf(sale) : snap?.paidAmount ?? 0;
+  const reste = Math.max(totalTTC - paid, 0);
+
+  const client = db.clients.find((c) => c.id === invoice.clientId);
+  const clientNm = client?.name ?? snap?.clientName ?? "—";
+
+  return {
+    invoice,
+    client,
+    clientName: clientNm,
+    docStatus: invoice.docStatus,
+    items,
+    discount,
+    totalHT,
+    tvaRate,
+    tvaAmount,
+    totalTTC,
+    paid,
+    reste,
+    paymentStatus,
+    saleExists: Boolean(sale),
+  };
 }
 
 // ---------------------------------------------------------------------------

@@ -29,12 +29,12 @@ export const navItems: NavItem[] = [
   { label: "Ventes", href: "/ventes", icon: Receipt },
   { label: "Frais", href: "/frais", icon: Wallet },
   { label: "Stock", href: "/stock", icon: Boxes },
-  { label: "Factures", href: "/factures", icon: FileText, comingSoon: true },
+  { label: "Factures", href: "/factures", icon: FileText },
   { label: "Clients", href: "/clients", icon: Users },
   {
     label: "Fournisseurs",
     href: "/fournisseurs",
     icon: Truck,
   },
-  { label: "Rapports", href: "/rapports", icon: BarChart3, comingSoon: true },
+  { label: "Rapports", href: "/rapports", icon: BarChart3 },
 ];
