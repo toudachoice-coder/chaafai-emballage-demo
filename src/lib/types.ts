@@ -158,15 +158,36 @@ export interface StockMovement {
   createdAt: string;
 }
 
+export type InvoiceStatus = "Brouillon" | "Validée" | "Annulée";
+
+/** Frozen copy of a sale, kept so an invoice survives sale deletion. */
+export interface InvoiceSnapshot {
+  items: LineItem[];
+  discount?: number;
+  total: number;
+  paidAmount: number;
+  paymentStatus: PaymentStatus;
+  clientName: string;
+}
+
 export interface Invoice {
   id: string;
+  /** Stable human number, e.g. "FAC-2026-0001" — never changes once set. */
   number: string;
   saleId?: string;
   clientId: string;
+  /** Snapshot total (kept for history / legacy records). */
   amount: number;
+  /** Payment status snapshot (legacy field; live status read from the sale). */
   status: PaymentStatus;
+  /** Document lifecycle status. */
+  docStatus: InvoiceStatus;
+  /** VAT rate as a fraction, e.g. 0 or 0.2. Default 0 for the demo. */
+  tvaRate: number;
+  notes?: string;
   date: string;
   dueDate?: string;
+  snapshot?: InvoiceSnapshot;
   createdAt: string;
 }
 
