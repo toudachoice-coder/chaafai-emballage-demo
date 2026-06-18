@@ -27,19 +27,21 @@ import {
   resteOf,
 } from "@/lib/store";
 import { formatMAD, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const opStyles = {
-  vente: { label: "Vente", cls: "bg-brand-50 text-brand-700", icon: Receipt },
+  vente: { tKey: "dash.opVente", cls: "bg-brand-50 text-brand-700", icon: Receipt },
   achat: {
-    label: "Achat",
+    tKey: "dash.opAchat",
     cls: "bg-accent-50 text-accent-700",
     icon: ShoppingCart,
   },
-  frais: { label: "Frais", cls: "bg-slate-100 text-slate-600", icon: Wallet },
+  frais: { tKey: "dash.opFrais", cls: "bg-slate-100 text-slate-600", icon: Wallet },
 } as const;
 
 export default function DashboardPage() {
   const { db, ready } = useDatabase();
+  const { t } = useI18n();
 
   const stats = useMemo(() => (db ? getDashboardStats(db) : null), [db]);
 
@@ -68,8 +70,8 @@ export default function DashboardPage() {
 
   return (
     <AppShell
-      title="Tableau de bord"
-      subtitle="Vue d'ensemble de votre activité"
+      title={t("page.dashboard.title")}
+      subtitle={t("page.dashboard.subtitle")}
     >
       {!ready || !stats || !db ? (
         <DashboardSkeleton />
@@ -78,30 +80,35 @@ export default function DashboardPage() {
           {/* Primary KPIs */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="Produits"
+              label={t("dash.products")}
               value={String(stats.productCount)}
-              hint={`${stats.clientCount} clients · ${stats.supplierCount} fournisseurs`}
+              hint={t("dash.hintClientsSuppliers", {
+                c: stats.clientCount,
+                s: stats.supplierCount,
+              })}
               icon={Package}
               tone="accent"
             />
             <StatCard
-              label="Valeur du stock (coût)"
+              label={t("dash.stockValue")}
               value={formatMAD(stats.stockValue)}
-              hint={`Valeur de vente : ${formatMAD(stats.potentialRevenue)}`}
+              hint={t("dash.hintSaleValue", {
+                v: formatMAD(stats.potentialRevenue),
+              })}
               icon={Boxes}
               tone="brand"
             />
             <StatCard
-              label="Bénéfice estimé"
+              label={t("dash.estimatedProfit")}
               value={formatMAD(stats.estimatedProfit)}
-              hint="Ventes − Achats − Frais"
+              hint={t("dash.hintProfitFormula")}
               icon={TrendingUp}
               tone={stats.estimatedProfit >= 0 ? "brand" : "red"}
             />
             <StatCard
-              label="Alertes stock bas"
+              label={t("dash.lowStockAlerts")}
               value={String(stats.lowStockCount)}
-              hint="Produits à réapprovisionner"
+              hint={t("dash.hintReplenish")}
               icon={AlertTriangle}
               tone={stats.lowStockCount > 0 ? "amber" : "slate"}
             />
@@ -110,29 +117,30 @@ export default function DashboardPage() {
           {/* Secondary KPIs */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="Total ventes"
+              label={t("dash.totalSales")}
               value={formatMAD(stats.totalSales)}
               icon={Receipt}
               tone="brand"
             />
             <StatCard
-              label="Total achats"
+              label={t("dash.totalPurchases")}
               value={formatMAD(stats.totalPurchases)}
               icon={ShoppingCart}
               tone="accent"
             />
             <StatCard
-              label="Total frais"
+              label={t("dash.totalExpenses")}
               value={formatMAD(stats.totalExpenses)}
               icon={Wallet}
               tone="slate"
             />
             <StatCard
-              label="Ventes impayées"
+              label={t("dash.unpaidSales")}
               value={formatMAD(stats.unpaidSalesAmount)}
-              hint={`${stats.unpaidSalesCount} vente(s) · à payer fourn. ${formatMAD(
-                stats.supplierPayables
-              )}`}
+              hint={t("dash.hintUnpaid", {
+                n: stats.unpaidSalesCount,
+                v: formatMAD(stats.supplierPayables),
+              })}
               icon={FileWarning}
               tone={stats.unpaidSalesCount > 0 ? "red" : "slate"}
             />
@@ -142,21 +150,21 @@ export default function DashboardPage() {
             {/* Low stock alerts */}
             <section className="card">
               <SectionHeader
-                title="Alertes de stock bas"
+                title={t("dash.secLowStock")}
                 icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
                 action={
                   <Link
                     href="/produits"
                     className="text-sm font-medium text-brand-600 hover:text-brand-700"
                   >
-                    Voir les produits
+                    {t("dash.viewProducts")}
                   </Link>
                 }
               />
               {lowStock.length === 0 ? (
                 <EmptyState
-                  title="Aucune alerte"
-                  description="Tous vos produits sont au-dessus du seuil minimum."
+                  title={t("dash.noAlert")}
+                  description={t("dash.noAlertDesc")}
                   icon={<Boxes className="h-8 w-8" />}
                 />
               ) : (
@@ -186,21 +194,21 @@ export default function DashboardPage() {
             {/* Unpaid sales */}
             <section className="card">
               <SectionHeader
-                title="Ventes impayées"
+                title={t("dash.secUnpaid")}
                 icon={<FileWarning className="h-5 w-5 text-red-500" />}
                 action={
                   <Link
                     href="/ventes"
                     className="text-sm font-medium text-brand-600 hover:text-brand-700"
                   >
-                    Voir les ventes
+                    {t("dash.viewSales")}
                   </Link>
                 }
               />
               {unpaidSales.length === 0 ? (
                 <EmptyState
-                  title="Tout est réglé"
-                  description="Aucune vente en attente de paiement."
+                  title={t("dash.allSettled")}
+                  description={t("dash.allSettledDesc")}
                   icon={<Receipt className="h-8 w-8" />}
                 />
               ) : (
@@ -215,7 +223,9 @@ export default function DashboardPage() {
                           {clientName(db, s.clientId)}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {formatDate(s.date)} · total {formatMAD(s.total)}
+                          {formatDate(s.date)} · {t("dash.totalShort", {
+                            v: formatMAD(s.total),
+                          })}
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-red-600">
@@ -230,19 +240,19 @@ export default function DashboardPage() {
             {/* Top products */}
             <section className="card">
               <SectionHeader
-                title="Produits les plus vendus"
+                title={t("dash.secTop")}
                 icon={<Trophy className="h-5 w-5 text-amber-500" />}
               />
               {topProducts.length === 0 ? (
                 <EmptyState
-                  title="Aucune vente"
-                  description="Le classement apparaîtra après vos premières ventes."
+                  title={t("dash.noSales")}
+                  description={t("dash.noSalesDesc")}
                 />
               ) : (
                 <ul className="divide-y divide-slate-100">
-                  {topProducts.map((t, i) => (
+                  {topProducts.map((top, i) => (
                     <li
-                      key={t.productId}
+                      key={top.productId}
                       className="flex items-center justify-between gap-4 px-5 py-3"
                     >
                       <div className="flex min-w-0 items-center gap-3">
@@ -250,15 +260,15 @@ export default function DashboardPage() {
                           {i + 1}
                         </span>
                         <p className="truncate text-sm font-medium text-slate-800">
-                          {t.name}
+                          {top.name}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-slate-800">
-                          {t.qty} u.
+                          {top.qty}
                         </p>
                         <p className="text-xs text-slate-400">
-                          {formatMAD(t.revenue)}
+                          {formatMAD(top.revenue)}
                         </p>
                       </div>
                     </li>
@@ -270,13 +280,13 @@ export default function DashboardPage() {
             {/* Recent operations */}
             <section className="card">
               <SectionHeader
-                title="Opérations récentes"
+                title={t("dash.secRecent")}
                 icon={<Activity className="h-5 w-5 text-brand-600" />}
               />
               {recentOps.length === 0 ? (
                 <EmptyState
-                  title="Aucune opération"
-                  description="Vos ventes, achats et frais apparaîtront ici."
+                  title={t("dash.noOps")}
+                  description={t("dash.noOpsDesc")}
                 />
               ) : (
                 <ul className="divide-y divide-slate-100">
@@ -297,7 +307,7 @@ export default function DashboardPage() {
                               {op.label}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {style.label} · {formatDate(op.date)}
+                              {t(style.tKey)} · {formatDate(op.date)}
                             </p>
                           </div>
                         </div>

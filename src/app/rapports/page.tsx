@@ -38,16 +38,17 @@ import {
 } from "@/lib/reports";
 import { exportCSV } from "@/lib/csv";
 import { formatMAD, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const TABS = [
-  { key: "ventes", label: "Ventes" },
-  { key: "achats", label: "Achats" },
-  { key: "frais", label: "Frais" },
-  { key: "stock", label: "Stock" },
-  { key: "benefice", label: "Bénéfice" },
-  { key: "impayes", label: "Impayés clients" },
-  { key: "fournisseurs", label: "Fournisseurs à payer" },
-  { key: "top", label: "Top produits" },
+  { key: "ventes", tKey: "rep.tVentes" },
+  { key: "achats", tKey: "rep.tAchats" },
+  { key: "frais", tKey: "rep.tFrais" },
+  { key: "stock", tKey: "rep.tStock" },
+  { key: "benefice", tKey: "rep.tBenefice" },
+  { key: "impayes", tKey: "rep.tImpayes" },
+  { key: "fournisseurs", tKey: "rep.tFournisseurs" },
+  { key: "top", tKey: "rep.tTop" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -56,6 +57,7 @@ const money = (n: number) => n.toFixed(2);
 
 export default function ReportsPage() {
   const { db, ready } = useDatabase();
+  const { t } = useI18n();
 
   const [filters, setFilters] = useState<ReportFilters>({ status: "all" });
   const [tab, setTab] = useState<TabKey>("ventes");
@@ -206,12 +208,12 @@ export default function ReportsPage() {
 
   return (
     <AppShell
-      title="Rapports"
-      subtitle="Analyses et exports de votre activité"
+      title={t("page.rapports.title")}
+      subtitle={t("page.rapports.subtitle")}
       actions={
         <button className="btn-secondary" onClick={() => window.print()}>
           <Printer className="h-4 w-4" />
-          <span className="hidden sm:inline">Imprimer</span>
+          <span className="hidden sm:inline">{t("common.print")}</span>
         </button>
       }
     >
@@ -223,7 +225,7 @@ export default function ReportsPage() {
           <div className="no-print card p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <div>
-                <label className="label">Du</label>
+                <label className="label">{t("rep.from")}</label>
                 <input
                   type="date"
                   className="input"
@@ -232,7 +234,7 @@ export default function ReportsPage() {
                 />
               </div>
               <div>
-                <label className="label">Au</label>
+                <label className="label">{t("rep.to")}</label>
                 <input
                   type="date"
                   className="input"
@@ -241,7 +243,7 @@ export default function ReportsPage() {
                 />
               </div>
               <div>
-                <label className="label">Client</label>
+                <label className="label">{t("common.client")}</label>
                 <select
                   className="input"
                   value={filters.clientId ?? ""}
@@ -249,7 +251,7 @@ export default function ReportsPage() {
                     set({ clientId: e.target.value || undefined })
                   }
                 >
-                  <option value="">Tous</option>
+                  <option value="">{t("common.all")}</option>
                   {db.clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -258,7 +260,7 @@ export default function ReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Fournisseur</label>
+                <label className="label">{t("common.supplier")}</label>
                 <select
                   className="input"
                   value={filters.supplierId ?? ""}
@@ -266,7 +268,7 @@ export default function ReportsPage() {
                     set({ supplierId: e.target.value || undefined })
                   }
                 >
-                  <option value="">Tous</option>
+                  <option value="">{t("common.all")}</option>
                   {db.suppliers.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
@@ -275,7 +277,7 @@ export default function ReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Produit</label>
+                <label className="label">{t("tbl.product")}</label>
                 <select
                   className="input"
                   value={filters.productId ?? ""}
@@ -283,7 +285,7 @@ export default function ReportsPage() {
                     set({ productId: e.target.value || undefined })
                   }
                 >
-                  <option value="">Tous</option>
+                  <option value="">{t("common.all")}</option>
                   {db.products.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -292,7 +294,7 @@ export default function ReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Catégorie</label>
+                <label className="label">{t("common.category")}</label>
                 <select
                   className="input"
                   value={filters.categoryId ?? ""}
@@ -300,7 +302,7 @@ export default function ReportsPage() {
                     set({ categoryId: e.target.value || undefined })
                   }
                 >
-                  <option value="">Toutes</option>
+                  <option value="">{t("common.allF")}</option>
                   {db.categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -309,7 +311,7 @@ export default function ReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Statut paiement</label>
+                <label className="label">{t("field.paymentStatus")}</label>
                 <select
                   className="input"
                   value={filters.status ?? "all"}
@@ -319,10 +321,10 @@ export default function ReportsPage() {
                     })
                   }
                 >
-                  <option value="all">Tous</option>
-                  <option value="paid">Payé</option>
-                  <option value="partial">Partiel</option>
-                  <option value="unpaid">Non payé</option>
+                  <option value="all">{t("common.all")}</option>
+                  <option value="paid">{t("status.paid")}</option>
+                  <option value="partial">{t("status.partial")}</option>
+                  <option value="unpaid">{t("status.unpaid")}</option>
                 </select>
               </div>
               <div className="flex items-end">
@@ -331,7 +333,7 @@ export default function ReportsPage() {
                   onClick={() => setFilters({ status: "all" })}
                 >
                   <RotateCcw className="h-4 w-4" />
-                  Réinitialiser
+                  {t("rep.reset")}
                 </button>
               </div>
             </div>
@@ -343,10 +345,10 @@ export default function ReportsPage() {
             <div className="hidden items-center justify-between border-b border-slate-200 pb-3 print:flex">
               <div>
                 <div className="text-lg font-bold text-slate-900">
-                  Chaafai Emballage — Rapport
+                  {t("rep.headerTitle")}
                 </div>
                 <div className="text-sm text-slate-500">
-                  {TABS.find((t) => t.key === tab)?.label} · {rangeLabel}
+                  {t(TABS.find((x) => x.key === tab)?.tKey ?? "")} · {rangeLabel}
                 </div>
               </div>
             </div>
@@ -354,50 +356,50 @@ export default function ReportsPage() {
             {/* KPI cards */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard
-                label="Total ventes"
+                label={t("dash.totalSales")}
                 value={formatMAD(summary.totalSales)}
                 icon={Receipt}
                 tone="brand"
               />
               <StatCard
-                label="Total achats"
+                label={t("dash.totalPurchases")}
                 value={formatMAD(summary.totalPurchases)}
                 icon={ShoppingCart}
                 tone="accent"
               />
               <StatCard
-                label="Total frais"
+                label={t("dash.totalExpenses")}
                 value={formatMAD(summary.totalExpenses)}
                 icon={Wallet}
                 tone="slate"
               />
               <StatCard
-                label="Bénéfice estimé"
+                label={t("dash.estimatedProfit")}
                 value={formatMAD(summary.estimatedProfit)}
-                hint="Ventes − Achats − Frais"
+                hint={t("dash.hintProfitFormula")}
                 icon={TrendingUp}
                 tone={summary.estimatedProfit >= 0 ? "brand" : "red"}
               />
               <StatCard
-                label="Impayé clients"
+                label={t("rep.kpiUnpaidClients")}
                 value={formatMAD(summary.unpaidClients)}
                 icon={Users}
                 tone={summary.unpaidClients > 0 ? "red" : "slate"}
               />
               <StatCard
-                label="À payer fournisseurs"
+                label={t("rep.kpiSupplierPayables")}
                 value={formatMAD(summary.supplierPayables)}
                 icon={Truck}
                 tone={summary.supplierPayables > 0 ? "amber" : "slate"}
               />
               <StatCard
-                label="Valeur du stock"
+                label={t("rep.kpiStockValue")}
                 value={formatMAD(summary.stockValue)}
                 icon={Boxes}
                 tone="brand"
               />
               <StatCard
-                label="Produits en alerte"
+                label={t("rep.kpiLowStock")}
                 value={String(summary.lowStockCount)}
                 icon={AlertTriangle}
                 tone={summary.lowStockCount > 0 ? "amber" : "slate"}
@@ -407,23 +409,23 @@ export default function ReportsPage() {
             {/* Tabs + export */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="no-print flex flex-wrap gap-2">
-                {TABS.map((t) => (
+                {TABS.map((tabItem) => (
                   <button
-                    key={t.key}
-                    onClick={() => setTab(t.key)}
+                    key={tabItem.key}
+                    onClick={() => setTab(tabItem.key)}
                     className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                      tab === t.key
+                      tab === tabItem.key
                         ? "bg-brand-600 text-white"
                         : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
                     }`}
                   >
-                    {t.label}
+                    {t(tabItem.tKey)}
                   </button>
                 ))}
               </div>
               <button className="btn-secondary no-print" onClick={handleExport}>
                 <Download className="h-4 w-4" />
-                Exporter CSV
+                {t("rep.export")}
               </button>
             </div>
 
@@ -431,7 +433,7 @@ export default function ReportsPage() {
             <div className="card overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-3">
                 <h2 className="text-base font-semibold text-slate-900">
-                  {TABS.find((t) => t.key === tab)?.label}
+                  {t(TABS.find((x) => x.key === tab)?.tKey ?? "")}
                 </h2>
               </div>
               <ReportTable
@@ -466,25 +468,32 @@ function ReportTable({
   stockRows,
   summary,
 }: any) {
+  const { t } = useI18n();
   const empty = (
-    <EmptyState
-      title="Aucune donnée"
-      description="Aucun enregistrement ne correspond à ces filtres."
-    />
+    <EmptyState title={t("rep.noData")} description={t("rep.noDataDesc")} />
   );
 
   if (tab === "ventes")
     return sales.length === 0 ? (
       empty
     ) : (
-      <Table head={["Date", "Client", "Articles", "Total", "Statut", "Reste"]}>
+      <Table
+        head={[
+          t("common.date"),
+          t("common.client"),
+          t("rep.articles"),
+          t("common.total"),
+          t("common.status"),
+          t("common.remaining"),
+        ]}
+      >
         {sales.map((s: any) => (
           <tr key={s.id} className="hover:bg-slate-50/60">
             <Td>{formatDate(s.date)}</Td>
             <Td bold>{clientName(db, s.clientId)}</Td>
-            <Td>{s.items.reduce((n: number, it: any) => n + it.qty, 0)} u.</Td>
+            <Td>{s.items.reduce((n: number, it: any) => n + it.qty, 0)}</Td>
             <Td right>{formatMAD(s.total)}</Td>
-            <Td>{statusLabel(s.status)}</Td>
+            <Td>{t(`status.${s.status}`)}</Td>
             <TdMoney value={resteOf(s)} />
           </tr>
         ))}
@@ -496,7 +505,14 @@ function ReportTable({
       empty
     ) : (
       <Table
-        head={["Date", "Fournisseur", "N° facture", "Total", "Statut", "Reste"]}
+        head={[
+          t("common.date"),
+          t("common.supplier"),
+          t("rep.invoiceNo"),
+          t("common.total"),
+          t("common.status"),
+          t("common.remaining"),
+        ]}
       >
         {purchases.map((p: any) => (
           <tr key={p.id} className="hover:bg-slate-50/60">
@@ -504,7 +520,7 @@ function ReportTable({
             <Td bold>{supplierName(db, p.supplierId)}</Td>
             <Td>{p.invoiceNumber ?? "—"}</Td>
             <Td right>{formatMAD(p.total)}</Td>
-            <Td>{statusLabel(p.status)}</Td>
+            <Td>{t(`status.${p.status}`)}</Td>
             <TdMoney value={resteOf(p)} />
           </tr>
         ))}
@@ -515,7 +531,15 @@ function ReportTable({
     return expenses.length === 0 ? (
       empty
     ) : (
-      <Table head={["Date", "Description", "Catégorie", "Paiement", "Montant"]}>
+      <Table
+        head={[
+          t("common.date"),
+          t("field.description"),
+          t("common.category"),
+          t("inv.payment"),
+          t("common.amount"),
+        ]}
+      >
         {expenses.map((e: any) => (
           <tr key={e.id} className="hover:bg-slate-50/60">
             <Td>{formatDate(e.date)}</Td>
@@ -533,7 +557,14 @@ function ReportTable({
       empty
     ) : (
       <Table
-        head={["Produit", "Catégorie", "Stock", "Seuil", "Valeur", "Alerte"]}
+        head={[
+          t("tbl.product"),
+          t("common.category"),
+          t("tbl.stock"),
+          t("rep.threshold"),
+          t("rep.value"),
+          t("rep.alert"),
+        ]}
       >
         {stockRows.map((r: any) => (
           <tr key={r.productId} className="hover:bg-slate-50/60">
@@ -545,7 +576,7 @@ function ReportTable({
             <Td>
               {r.low ? (
                 <span className="badge bg-amber-50 text-amber-700">
-                  Stock bas
+                  {t("rep.lowStockBadge")}
                 </span>
               ) : (
                 <span className="text-slate-400">OK</span>
@@ -558,12 +589,18 @@ function ReportTable({
 
   if (tab === "benefice")
     return (
-      <Table head={["Indicateur", "Montant"]}>
-        <BeneficeRow label="Total ventes" value={summary.totalSales} />
-        <BeneficeRow label="Total achats" value={-summary.totalPurchases} />
-        <BeneficeRow label="Total frais" value={-summary.totalExpenses} />
+      <Table head={[t("rep.indicator"), t("common.amount")]}>
+        <BeneficeRow label={t("dash.totalSales")} value={summary.totalSales} />
+        <BeneficeRow
+          label={t("dash.totalPurchases")}
+          value={-summary.totalPurchases}
+        />
+        <BeneficeRow
+          label={t("dash.totalExpenses")}
+          value={-summary.totalExpenses}
+        />
         <tr className="bg-slate-50 font-bold">
-          <Td bold>Bénéfice estimé</Td>
+          <Td bold>{t("dash.estimatedProfit")}</Td>
           <td
             className={`px-5 py-3 text-right font-bold ${
               summary.estimatedProfit >= 0 ? "text-brand-700" : "text-red-600"
@@ -579,7 +616,14 @@ function ReportTable({
     return unpaidClients.length === 0 ? (
       empty
     ) : (
-      <Table head={["Client", "Facturé", "Payé", "Reste dû"]}>
+      <Table
+        head={[
+          t("common.client"),
+          t("rep.invoiced"),
+          t("common.paid"),
+          t("rep.dueClient"),
+        ]}
+      >
         {unpaidClients.map((r: any) => (
           <tr key={r.clientId} className="hover:bg-slate-50/60">
             <Td bold>{r.name}</Td>
@@ -595,7 +639,14 @@ function ReportTable({
     return suppliersToPay.length === 0 ? (
       empty
     ) : (
-      <Table head={["Fournisseur", "Acheté", "Payé", "Reste à payer"]}>
+      <Table
+        head={[
+          t("common.supplier"),
+          t("rep.purchased"),
+          t("common.paid"),
+          t("rep.duePay"),
+        ]}
+      >
         {suppliersToPay.map((r: any) => (
           <tr key={r.supplierId} className="hover:bg-slate-50/60">
             <Td bold>{r.name}</Td>
@@ -611,12 +662,14 @@ function ReportTable({
   return topProducts.length === 0 ? (
     empty
   ) : (
-    <Table head={["#", "Produit", "Quantité vendue", "Chiffre d'affaires"]}>
+    <Table
+      head={["#", t("tbl.product"), t("rep.qtySold"), t("rep.revenue")]}
+    >
       {topProducts.map((r: any, i: number) => (
         <tr key={r.productId} className="hover:bg-slate-50/60">
           <Td>{i + 1}</Td>
           <Td bold>{r.name}</Td>
-          <Td right>{r.qty} u.</Td>
+          <Td right>{r.qty}</Td>
           <Td right>{formatMAD(r.revenue)}</Td>
         </tr>
       ))}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="fr" className={inter.variable}>
       <body className="font-sans antialiased">
-        <ToastProvider>{children}</ToastProvider>
+        <I18nProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </I18nProvider>
       </body>
     </html>
   );

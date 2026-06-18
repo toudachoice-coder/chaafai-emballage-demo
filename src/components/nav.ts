@@ -13,28 +13,24 @@ import {
 } from "lucide-react";
 
 export interface NavItem {
-  label: string;
+  /** Translation key (see lib/i18n). */
+  tKey: string;
   href: string;
   icon: LucideIcon;
   /** Module not yet implemented in this prototype phase. */
   comingSoon?: boolean;
 }
 
-// The full ERP module map. Only Dashboard + Produits are live in this phase;
-// the rest are shown as "Bientôt" so the demo conveys the full scope.
+// The full ERP module map.
 export const navItems: NavItem[] = [
-  { label: "Tableau de bord", href: "/", icon: LayoutDashboard },
-  { label: "Produits", href: "/produits", icon: Package },
-  { label: "Achats", href: "/achats", icon: ShoppingCart },
-  { label: "Ventes", href: "/ventes", icon: Receipt },
-  { label: "Frais", href: "/frais", icon: Wallet },
-  { label: "Stock", href: "/stock", icon: Boxes },
-  { label: "Factures", href: "/factures", icon: FileText },
-  { label: "Clients", href: "/clients", icon: Users },
-  {
-    label: "Fournisseurs",
-    href: "/fournisseurs",
-    icon: Truck,
-  },
-  { label: "Rapports", href: "/rapports", icon: BarChart3 },
+  { tKey: "nav.dashboard", href: "/", icon: LayoutDashboard },
+  { tKey: "nav.produits", href: "/produits", icon: Package },
+  { tKey: "nav.achats", href: "/achats", icon: ShoppingCart },
+  { tKey: "nav.ventes", href: "/ventes", icon: Receipt },
+  { tKey: "nav.frais", href: "/frais", icon: Wallet },
+  { tKey: "nav.stock", href: "/stock", icon: Boxes },
+  { tKey: "nav.factures", href: "/factures", icon: FileText },
+  { tKey: "nav.clients", href: "/clients", icon: Users },
+  { tKey: "nav.fournisseurs", href: "/fournisseurs", icon: Truck },
+  { tKey: "nav.rapports", href: "/rapports", icon: BarChart3 },
 ];

@@ -25,10 +25,12 @@ import {
 } from "@/lib/store";
 import type { Supplier } from "@/lib/types";
 import { formatMAD } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function SuppliersPage() {
   const { db, ready } = useDatabase();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
@@ -59,10 +61,10 @@ export default function SuppliersPage() {
   const handleSubmit = (input: SupplierInput) => {
     if (editing) {
       updateSupplier(editing.id, input);
-      toast(`« ${input.name} » mis à jour`);
+      toast(t("toast.updated", { name: input.name }));
     } else {
       addSupplier(input);
-      toast(`« ${input.name} » ajouté`);
+      toast(t("toast.added", { name: input.name }));
     }
     setFormOpen(false);
     setEditing(null);
@@ -71,19 +73,19 @@ export default function SuppliersPage() {
   const confirmDelete = () => {
     if (!deleteTarget) return;
     deleteSupplier(deleteTarget.id);
-    toast(`« ${deleteTarget.name} » supprimé`);
+    toast(t("toast.deleted", { name: deleteTarget.name }));
     setDeleteTarget(null);
   };
 
   return (
     <AppShell
-      title="Fournisseurs"
-      subtitle="Gérez vos fournisseurs et vos dettes"
+      title={t("page.fournisseurs.title")}
+      subtitle={t("page.fournisseurs.subtitle")}
       actions={
         <button className="btn-primary" onClick={openAdd}>
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Ajouter un fournisseur</span>
-          <span className="sm:hidden">Ajouter</span>
+          <span className="hidden sm:inline">{t("sup.addBtn")}</span>
+          <span className="sm:hidden">{t("common.add")}</span>
         </button>
       }
     >
@@ -95,7 +97,7 @@ export default function SuppliersPage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               className="input pl-9"
-              placeholder="Rechercher par nom, téléphone ou catégorie…"
+              placeholder={t("sup.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -104,20 +106,20 @@ export default function SuppliersPage() {
           <div className="card overflow-hidden">
             {db.suppliers.length === 0 ? (
               <EmptyState
-                title="Aucun fournisseur"
-                description="Ajoutez votre premier fournisseur pour commencer."
+                title={t("sup.empty")}
+                description={t("sup.emptyDesc")}
                 icon={<Truck className="h-8 w-8" />}
                 action={
                   <button className="btn-primary" onClick={openAdd}>
                     <Plus className="h-4 w-4" />
-                    Ajouter un fournisseur
+                    {t("sup.addBtn")}
                   </button>
                 }
               />
             ) : filtered.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Aucun fournisseur ne correspond à votre recherche."
+                title={t("empty.noResult")}
+                description={t("empty.noResultDesc")}
                 icon={<Search className="h-8 w-8" />}
               />
             ) : (
@@ -125,11 +127,11 @@ export default function SuppliersPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                      <th className="px-5 py-3">Fournisseur</th>
-                      <th className="px-5 py-3">Catégorie</th>
-                      <th className="px-5 py-3">Contact</th>
-                      <th className="px-5 py-3 text-right">Solde à payer</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
+                      <th className="px-5 py-3">{t("common.supplier")}</th>
+                      <th className="px-5 py-3">{t("common.category")}</th>
+                      <th className="px-5 py-3">{t("tbl.contact")}</th>
+                      <th className="px-5 py-3 text-right">{t("tbl.payableBalance")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -187,14 +189,14 @@ export default function SuppliersPage() {
                               <button
                                 onClick={() => openEdit(s)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                                title="Modifier"
+                                title={t("common.edit")}
                               >
                                 <Pencil className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget(s)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                                title="Supprimer"
+                                title={t("common.delete")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -224,7 +226,7 @@ export default function SuppliersPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        message={`Voulez-vous vraiment supprimer « ${deleteTarget?.name} » ? Cette action est irréversible.`}
+        message={t("confirm.deleteItem", { name: deleteTarget?.name ?? "" })}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />

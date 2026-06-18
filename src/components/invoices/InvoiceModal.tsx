@@ -5,6 +5,7 @@ import { X, Printer } from "lucide-react";
 import { InvoiceDocument } from "./InvoiceDocument";
 import type { InvoiceView } from "@/lib/store";
 import type { InvoiceStatus } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const DOC_STATUSES: InvoiceStatus[] = ["Brouillon", "Validée", "Annulée"];
 const TVA_OPTIONS = [0, 0.07, 0.1, 0.14, 0.2];
@@ -24,6 +25,7 @@ export function InvoiceModal({
   onChangeStatus,
   onChangeTva,
 }: InvoiceModalProps) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -55,7 +57,7 @@ export function InvoiceModal({
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <label className="hidden items-center gap-1 text-sm text-slate-500 sm:flex">
-            TVA
+            {t("invdoc.tva")}
             <select
               className="input !w-auto !py-1.5"
               value={view.tvaRate}
@@ -72,17 +74,17 @@ export function InvoiceModal({
             className="input !w-auto !py-1.5"
             value={view.docStatus}
             onChange={(e) => onChangeStatus(e.target.value as InvoiceStatus)}
-            aria-label="Statut de la facture"
+            aria-label={t("common.status")}
           >
             {DOC_STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {t(`doc.${s}`)}
               </option>
             ))}
           </select>
           <button className="btn-primary" onClick={() => window.print()}>
             <Printer className="h-4 w-4" />
-            Imprimer / PDF
+            {t("inv.printPdf")}
           </button>
         </div>
       </div>

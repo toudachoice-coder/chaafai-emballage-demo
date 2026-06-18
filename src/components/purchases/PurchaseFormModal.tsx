@@ -11,6 +11,7 @@ import {
 import { PaymentFields } from "@/components/transactions/PaymentFields";
 import type { Purchase, PaymentStatus, Product, Supplier } from "@/lib/types";
 import type { PurchaseInput } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const todayInput = () => new Date().toISOString().slice(0, 10);
 
@@ -31,6 +32,7 @@ export function PurchaseFormModal({
   products,
   purchase,
 }: PurchaseFormModalProps) {
+  const { t } = useI18n();
   const [date, setDate] = useState(todayInput());
   const [supplierId, setSupplierId] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -101,16 +103,16 @@ export function PurchaseFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={purchase ? "Modifier l'achat" : "Nouvel achat"}
+      title={purchase ? t("common.edit") : t("buy.addBtn")}
       description="L'enregistrement met automatiquement à jour le stock."
       size="lg"
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {purchase ? "Enregistrer" : "Enregistrer l'achat"}
+            {t("common.save")}
           </button>
         </>
       }
@@ -118,7 +120,7 @@ export function PurchaseFormModal({
       <div className="space-y-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="label">Date</label>
+            <label className="label">{t("common.date")}</label>
             <input
               type="date"
               className="input"
@@ -127,13 +129,13 @@ export function PurchaseFormModal({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="label">Fournisseur</label>
+            <label className="label">{t("common.supplier")}</label>
             <select
               className="input"
               value={supplierId}
               onChange={(e) => setSupplierId(e.target.value)}
             >
-              <option value="">Choisir un fournisseur…</option>
+              <option value="">{t("trx.chooseSupplier")}</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -144,7 +146,7 @@ export function PurchaseFormModal({
         </div>
 
         <div>
-          <label className="label">Produits</label>
+          <label className="label">{t("common.products")}</label>
           <LineItemsEditor
             products={products}
             lines={lines}
@@ -154,7 +156,7 @@ export function PurchaseFormModal({
         </div>
 
         <div>
-          <label className="label">N° facture fournisseur (optionnel)</label>
+          <label className="label">{t("field.invoiceNumber")}</label>
           <input
             className="input"
             value={invoiceNumber}
@@ -172,7 +174,9 @@ export function PurchaseFormModal({
         />
 
         <div>
-          <label className="label">Notes (optionnel)</label>
+          <label className="label">
+            {t("common.notes")} {t("common.optional")}
+          </label>
           <textarea
             className="input min-h-[70px] resize-y"
             value={note}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import type { Client, ClientType } from "@/lib/types";
 import type { ClientInput } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const CLIENT_TYPES: ClientType[] = [
   "Restaurant",
@@ -38,6 +39,7 @@ export function ClientFormModal({
   onSubmit,
   client,
 }: ClientFormModalProps) {
+  const { t } = useI18n();
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -84,7 +86,7 @@ export function ClientFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={client ? "Modifier le client" : "Ajouter un client"}
+      title={client ? t("cli.formEditTitle") : t("cli.formAddTitle")}
       description={
         client
           ? "Mettez à jour les informations du client."
@@ -94,17 +96,17 @@ export function ClientFormModal({
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {client ? "Enregistrer" : "Ajouter le client"}
+            {t("common.save")}
           </button>
         </>
       }
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label className="label">Nom</label>
+          <label className="label">{t("field.name")}</label>
           <input
             className="input"
             value={form.name}
@@ -117,22 +119,22 @@ export function ClientFormModal({
         </div>
 
         <div>
-          <label className="label">Type de client</label>
+          <label className="label">{t("field.clientType")}</label>
           <select
             className="input"
             value={form.type}
             onChange={(e) => set("type", e.target.value)}
           >
-            {CLIENT_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
+            {CLIENT_TYPES.map((ct) => (
+              <option key={ct} value={ct}>
+                {ct}
               </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="label">Téléphone</label>
+          <label className="label">{t("field.phone")}</label>
           <input
             className="input"
             value={form.phone}
@@ -145,7 +147,9 @@ export function ClientFormModal({
         </div>
 
         <div>
-          <label className="label">Email (optionnel)</label>
+          <label className="label">
+            {t("field.email")} {t("common.optional")}
+          </label>
           <input
             className="input"
             value={form.email}
@@ -155,7 +159,9 @@ export function ClientFormModal({
         </div>
 
         <div>
-          <label className="label">ICE (optionnel)</label>
+          <label className="label">
+            {t("field.ice")} {t("common.optional")}
+          </label>
           <input
             className="input"
             value={form.ice}
@@ -165,7 +171,9 @@ export function ClientFormModal({
         </div>
 
         <div className="sm:col-span-2">
-          <label className="label">Adresse (optionnel)</label>
+          <label className="label">
+            {t("field.address")} {t("common.optional")}
+          </label>
           <input
             className="input"
             value={form.address}
@@ -175,7 +183,9 @@ export function ClientFormModal({
         </div>
 
         <div className="sm:col-span-2">
-          <label className="label">Notes (optionnel)</label>
+          <label className="label">
+            {t("common.notes")} {t("common.optional")}
+          </label>
           <textarea
             className="input min-h-[80px] resize-y"
             value={form.notes}

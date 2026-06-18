@@ -19,10 +19,12 @@ import {
 } from "@/lib/store";
 import type { Expense } from "@/lib/types";
 import { formatMAD, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function ExpensesPage() {
   const { db, ready } = useDatabase();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [from, setFrom] = useState("");
@@ -62,10 +64,10 @@ export default function ExpensesPage() {
   const handleSubmit = (input: ExpenseInput) => {
     if (editing) {
       updateExpense(editing.id, input);
-      toast("Frais mis à jour");
+      toast(t("toast.expenseUpdated"));
     } else {
       addExpense(input);
-      toast("Frais enregistré");
+      toast(t("toast.expenseSaved"));
     }
     setFormOpen(false);
     setEditing(null);
@@ -74,19 +76,19 @@ export default function ExpensesPage() {
   const confirmDelete = () => {
     if (!deleteTarget) return;
     deleteExpense(deleteTarget.id);
-    toast("Frais supprimé");
+    toast(t("toast.expenseDeleted"));
     setDeleteTarget(null);
   };
 
   return (
     <AppShell
-      title="Frais"
-      subtitle="Suivez vos dépenses et charges"
+      title={t("page.frais.title")}
+      subtitle={t("page.frais.subtitle")}
       actions={
         <button className="btn-primary" onClick={openAdd}>
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Ajouter un frais</span>
-          <span className="sm:hidden">Ajouter</span>
+          <span className="hidden sm:inline">{t("exp.addBtn")}</span>
+          <span className="sm:hidden">{t("common.add")}</span>
         </button>
       }
     >
@@ -101,7 +103,7 @@ export default function ExpensesPage() {
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{t("exp.allCategories")}</option>
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -114,7 +116,7 @@ export default function ExpensesPage() {
                 className="input"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                aria-label="Date de début"
+                aria-label={t("exp.from")}
               />
             </div>
             <div>
@@ -123,11 +125,11 @@ export default function ExpensesPage() {
                 className="input"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                aria-label="Date de fin"
+                aria-label={t("exp.to")}
               />
             </div>
             <div className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-4 py-2">
-              <span className="text-sm text-slate-500">Total</span>
+              <span className="text-sm text-slate-500">{t("common.total")}</span>
               <span className="font-semibold text-slate-800">
                 {formatMAD(total)}
               </span>
@@ -137,32 +139,32 @@ export default function ExpensesPage() {
           <div className="card overflow-hidden">
             {db.expenses.length === 0 ? (
               <EmptyState
-                title="Aucun frais"
-                description="Enregistrez votre première dépense."
+                title={t("exp.empty")}
+                description={t("exp.emptyDesc")}
                 icon={<Wallet className="h-8 w-8" />}
                 action={
                   <button className="btn-primary" onClick={openAdd}>
                     <Plus className="h-4 w-4" />
-                    Ajouter un frais
+                    {t("exp.addBtn")}
                   </button>
                 }
               />
             ) : filtered.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Aucune dépense ne correspond à ces filtres."
+                title={t("empty.noResult")}
+                description={t("empty.noResultDesc")}
               />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                      <th className="px-5 py-3">Date</th>
-                      <th className="px-5 py-3">Description</th>
-                      <th className="px-5 py-3">Catégorie</th>
-                      <th className="px-5 py-3">Paiement</th>
-                      <th className="px-5 py-3 text-right">Montant</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
+                      <th className="px-5 py-3">{t("common.date")}</th>
+                      <th className="px-5 py-3">{t("field.description")}</th>
+                      <th className="px-5 py-3">{t("common.category")}</th>
+                      <th className="px-5 py-3">{t("inv.payment")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.amount")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -200,14 +202,14 @@ export default function ExpensesPage() {
                             <button
                               onClick={() => openEdit(e)}
                               className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                              title="Modifier"
+                              title={t("common.edit")}
                             >
                               <Pencil className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(e)}
                               className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title="Supprimer"
+                              title={t("common.delete")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -235,7 +237,7 @@ export default function ExpensesPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        message={`Voulez-vous vraiment supprimer ce frais « ${deleteTarget?.label} » ?`}
+        message={t("confirm.deleteExpense", { name: deleteTarget?.label ?? "" })}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />

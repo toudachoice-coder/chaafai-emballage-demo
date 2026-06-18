@@ -19,10 +19,12 @@ import {
 } from "@/lib/store";
 import type { Sale, PaymentStatus } from "@/lib/types";
 import { formatMAD, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function SalesPage() {
   const { db, ready } = useDatabase();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | PaymentStatus>("all");
@@ -54,12 +56,10 @@ export default function SalesPage() {
   const handleSubmit = (input: SaleInput) => {
     const res = editing ? updateSale(editing.id, input) : addSale(input);
     if (!res.ok) {
-      toast(res.error ?? "Une erreur est survenue.", "error");
+      toast(res.error ?? t("toast.genericError"), "error");
       return;
     }
-    toast(
-      editing ? "Vente mise à jour — stock ajusté" : "Vente enregistrée — stock mis à jour"
-    );
+    toast(editing ? t("toast.saleUpdated") : t("toast.saleSaved"));
     setFormOpen(false);
     setEditing(null);
   };
@@ -68,23 +68,23 @@ export default function SalesPage() {
     if (!deleteTarget) return;
     const res = deleteSale(deleteTarget.id);
     if (!res.ok) {
-      toast(res.error ?? "Suppression impossible.", "error");
+      toast(res.error ?? t("toast.genericError"), "error");
       setDeleteTarget(null);
       return;
     }
-    toast("Vente supprimée — stock restauré");
+    toast(t("toast.saleDeleted"));
     setDeleteTarget(null);
   };
 
   return (
     <AppShell
-      title="Ventes"
-      subtitle="Enregistrez vos ventes clients"
+      title={t("page.ventes.title")}
+      subtitle={t("page.ventes.subtitle")}
       actions={
         <button className="btn-primary" onClick={openAdd}>
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Nouvelle vente</span>
-          <span className="sm:hidden">Ajouter</span>
+          <span className="hidden sm:inline">{t("sell.addBtn")}</span>
+          <span className="sm:hidden">{t("common.add")}</span>
         </button>
       }
     >
@@ -97,7 +97,7 @@ export default function SalesPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 className="input pl-9"
-                placeholder="Rechercher par client…"
+                placeholder={t("sell.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -109,30 +109,30 @@ export default function SalesPage() {
                 setStatusFilter(e.target.value as "all" | PaymentStatus)
               }
             >
-              <option value="all">Tous les statuts</option>
-              <option value="paid">Payé</option>
-              <option value="partial">Partiel</option>
-              <option value="unpaid">Non payé</option>
+              <option value="all">{t("trx.allStatuses")}</option>
+              <option value="paid">{t("status.paid")}</option>
+              <option value="partial">{t("status.partial")}</option>
+              <option value="unpaid">{t("status.unpaid")}</option>
             </select>
           </div>
 
           <div className="card overflow-hidden">
             {db.sales.length === 0 ? (
               <EmptyState
-                title="Aucune vente"
-                description="Enregistrez votre première vente client."
+                title={t("sell.empty")}
+                description={t("sell.emptyDesc")}
                 icon={<Receipt className="h-8 w-8" />}
                 action={
                   <button className="btn-primary" onClick={openAdd}>
                     <Plus className="h-4 w-4" />
-                    Nouvelle vente
+                    {t("sell.addBtn")}
                   </button>
                 }
               />
             ) : filtered.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Aucune vente ne correspond à ces critères."
+                title={t("empty.noResult")}
+                description={t("empty.noResultDesc")}
                 icon={<Search className="h-8 w-8" />}
               />
             ) : (
@@ -140,13 +140,13 @@ export default function SalesPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                      <th className="px-5 py-3">Date</th>
-                      <th className="px-5 py-3">Client</th>
-                      <th className="px-5 py-3">Produits</th>
-                      <th className="px-5 py-3 text-right">Total</th>
-                      <th className="px-5 py-3">Statut</th>
-                      <th className="px-5 py-3 text-right">Reste</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
+                      <th className="px-5 py-3">{t("common.date")}</th>
+                      <th className="px-5 py-3">{t("common.client")}</th>
+                      <th className="px-5 py-3">{t("common.products")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.total")}</th>
+                      <th className="px-5 py-3">{t("common.status")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.remaining")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -155,7 +155,7 @@ export default function SalesPage() {
                       const itemsLabel =
                         s.items.length === 1
                           ? s.items[0].name
-                          : `${s.items.length} produits`;
+                          : t("trx.productsCount", { n: s.items.length });
                       return (
                         <tr
                           key={s.id}
@@ -170,8 +170,9 @@ export default function SalesPage() {
                           <td className="px-5 py-3 text-slate-600">
                             {itemsLabel}
                             <div className="text-xs text-slate-400">
-                              {s.items.reduce((acc, it) => acc + it.qty, 0)}{" "}
-                              unités
+                              {t("trx.unitsCount", {
+                                n: s.items.reduce((acc, it) => acc + it.qty, 0),
+                              })}
                             </div>
                           </td>
                           <td className="px-5 py-3 text-right font-medium text-slate-800">
@@ -194,14 +195,14 @@ export default function SalesPage() {
                               <button
                                 onClick={() => openEdit(s)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                                title="Modifier"
+                                title={t("common.edit")}
                               >
                                 <Pencil className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget(s)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                                title="Supprimer"
+                                title={t("common.delete")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -232,7 +233,7 @@ export default function SalesPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        message="Supprimer cette vente restaurera le stock vendu. Continuer ?"
+        message={t("confirm.deleteSale")}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />

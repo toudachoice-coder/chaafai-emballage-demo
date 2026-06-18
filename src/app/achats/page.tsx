@@ -19,10 +19,12 @@ import {
 } from "@/lib/store";
 import type { Purchase, PaymentStatus } from "@/lib/types";
 import { formatMAD, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function PurchasesPage() {
   const { db, ready } = useDatabase();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | PaymentStatus>("all");
@@ -59,10 +61,10 @@ export default function PurchasesPage() {
       ? updatePurchase(editing.id, input)
       : addPurchase(input);
     if (!res.ok) {
-      toast(res.error ?? "Une erreur est survenue.", "error");
+      toast(res.error ?? t("toast.genericError"), "error");
       return;
     }
-    toast(editing ? "Achat mis à jour — stock ajusté" : "Achat enregistré — stock mis à jour");
+    toast(editing ? t("toast.purchaseUpdated") : t("toast.purchaseSaved"));
     setFormOpen(false);
     setEditing(null);
   };
@@ -71,23 +73,23 @@ export default function PurchasesPage() {
     if (!deleteTarget) return;
     const res = deletePurchase(deleteTarget.id);
     if (!res.ok) {
-      toast(res.error ?? "Suppression impossible.", "error");
+      toast(res.error ?? t("toast.genericError"), "error");
       setDeleteTarget(null);
       return;
     }
-    toast("Achat supprimé — stock corrigé");
+    toast(t("toast.purchaseDeleted"));
     setDeleteTarget(null);
   };
 
   return (
     <AppShell
-      title="Achats"
-      subtitle="Enregistrez vos achats fournisseurs"
+      title={t("page.achats.title")}
+      subtitle={t("page.achats.subtitle")}
       actions={
         <button className="btn-primary" onClick={openAdd}>
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Nouvel achat</span>
-          <span className="sm:hidden">Ajouter</span>
+          <span className="hidden sm:inline">{t("buy.addBtn")}</span>
+          <span className="sm:hidden">{t("common.add")}</span>
         </button>
       }
     >
@@ -100,7 +102,7 @@ export default function PurchasesPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 className="input pl-9"
-                placeholder="Rechercher par fournisseur ou n° facture…"
+                placeholder={t("buy.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -112,30 +114,30 @@ export default function PurchasesPage() {
                 setStatusFilter(e.target.value as "all" | PaymentStatus)
               }
             >
-              <option value="all">Tous les statuts</option>
-              <option value="paid">Payé</option>
-              <option value="partial">Partiel</option>
-              <option value="unpaid">Non payé</option>
+              <option value="all">{t("trx.allStatuses")}</option>
+              <option value="paid">{t("status.paid")}</option>
+              <option value="partial">{t("status.partial")}</option>
+              <option value="unpaid">{t("status.unpaid")}</option>
             </select>
           </div>
 
           <div className="card overflow-hidden">
             {db.purchases.length === 0 ? (
               <EmptyState
-                title="Aucun achat"
-                description="Enregistrez votre premier achat fournisseur."
+                title={t("buy.empty")}
+                description={t("buy.emptyDesc")}
                 icon={<ShoppingCart className="h-8 w-8" />}
                 action={
                   <button className="btn-primary" onClick={openAdd}>
                     <Plus className="h-4 w-4" />
-                    Nouvel achat
+                    {t("buy.addBtn")}
                   </button>
                 }
               />
             ) : filtered.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Aucun achat ne correspond à ces critères."
+                title={t("empty.noResult")}
+                description={t("empty.noResultDesc")}
                 icon={<Search className="h-8 w-8" />}
               />
             ) : (
@@ -143,13 +145,13 @@ export default function PurchasesPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                      <th className="px-5 py-3">Date</th>
-                      <th className="px-5 py-3">Fournisseur</th>
-                      <th className="px-5 py-3">Produits</th>
-                      <th className="px-5 py-3 text-right">Total</th>
-                      <th className="px-5 py-3">Statut</th>
-                      <th className="px-5 py-3 text-right">Reste</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
+                      <th className="px-5 py-3">{t("common.date")}</th>
+                      <th className="px-5 py-3">{t("common.supplier")}</th>
+                      <th className="px-5 py-3">{t("common.products")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.total")}</th>
+                      <th className="px-5 py-3">{t("common.status")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.remaining")}</th>
+                      <th className="px-5 py-3 text-right">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -158,7 +160,7 @@ export default function PurchasesPage() {
                       const itemsLabel =
                         p.items.length === 1
                           ? p.items[0].name
-                          : `${p.items.length} produits`;
+                          : t("trx.productsCount", { n: p.items.length });
                       return (
                         <tr
                           key={p.id}
@@ -178,7 +180,9 @@ export default function PurchasesPage() {
                           <td className="px-5 py-3 text-slate-600">
                             {itemsLabel}
                             <div className="text-xs text-slate-400">
-                              {p.items.reduce((s, it) => s + it.qty, 0)} unités
+                              {t("trx.unitsCount", {
+                                n: p.items.reduce((s, it) => s + it.qty, 0),
+                              })}
                             </div>
                           </td>
                           <td className="px-5 py-3 text-right font-medium text-slate-800">
@@ -201,14 +205,14 @@ export default function PurchasesPage() {
                               <button
                                 onClick={() => openEdit(p)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                                title="Modifier"
+                                title={t("common.edit")}
                               >
                                 <Pencil className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget(p)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                                title="Supprimer"
+                                title={t("common.delete")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -239,7 +243,7 @@ export default function PurchasesPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        message="Supprimer cet achat annulera son effet sur le stock. Continuer ?"
+        message={t("confirm.deletePurchase")}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />
