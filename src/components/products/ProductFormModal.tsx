@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import type { Category, Product } from "@/lib/types";
 import type { ProductInput } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface ProductFormModalProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function ProductFormModal({
   categories,
   product,
 }: ProductFormModalProps) {
+  const { t } = useI18n();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -96,7 +98,7 @@ export function ProductFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={product ? "Modifier le produit" : "Ajouter un produit"}
+      title={product ? t("prod.formEditTitle") : t("prod.formAddTitle")}
       description={
         product
           ? "Mettez à jour les informations du produit."
@@ -106,17 +108,17 @@ export function ProductFormModal({
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {product ? "Enregistrer" : "Ajouter le produit"}
+            {t("common.save")}
           </button>
         </>
       }
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label className="label">Nom du produit</label>
+          <label className="label">{t("field.name")}</label>
           <input
             className="input"
             value={form.name}
@@ -129,14 +131,14 @@ export function ProductFormModal({
         </div>
 
         <div>
-          <label className="label">Catégorie</label>
+          <label className="label">{t("common.category")}</label>
           <select
             className="input"
             value={form.categoryId}
             onChange={(e) => set("categoryId", e.target.value)}
           >
             <option value="" disabled>
-              Choisir…
+              {t("common.choose")}
             </option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -150,17 +152,17 @@ export function ProductFormModal({
         </div>
 
         <div>
-          <label className="label">Référence (SKU)</label>
+          <label className="label">{t("field.sku")}</label>
           <input
             className="input"
             value={form.sku}
             onChange={(e) => set("sku", e.target.value)}
-            placeholder="Optionnel"
+            placeholder={t("common.optional")}
           />
         </div>
 
         <div>
-          <label className="label">Unité</label>
+          <label className="label">{t("field.unit")}</label>
           <input
             className="input"
             value={form.unit}
@@ -170,7 +172,7 @@ export function ProductFormModal({
         </div>
 
         <div>
-          <label className="label">Prix d&apos;achat (DH)</label>
+          <label className="label">{t("field.costPrice")}</label>
           <input
             type="number"
             min="0"
@@ -185,7 +187,7 @@ export function ProductFormModal({
         </div>
 
         <div>
-          <label className="label">Prix de vente (DH)</label>
+          <label className="label">{t("field.sellPrice")}</label>
           <input
             type="number"
             min="0"
@@ -201,7 +203,7 @@ export function ProductFormModal({
 
         <div className="sm:col-span-2">
           <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            Marge unitaire estimée :{" "}
+            {t("prod.margin")}{" "}
             <span
               className={`font-semibold ${
                 margin >= 0 ? "text-brand-700" : "text-red-600"
@@ -213,7 +215,7 @@ export function ProductFormModal({
         </div>
 
         <div>
-          <label className="label">Stock actuel</label>
+          <label className="label">{t("field.currentStock")}</label>
           <input
             type="number"
             min="0"
@@ -228,7 +230,7 @@ export function ProductFormModal({
         </div>
 
         <div>
-          <label className="label">Seuil d&apos;alerte (stock min.)</label>
+          <label className="label">{t("field.minStock")}</label>
           <input
             type="number"
             min="0"

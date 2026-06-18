@@ -4,6 +4,7 @@ import React from "react";
 import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { formatMAD } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export interface DraftLine {
   productId: string;
@@ -35,6 +36,7 @@ export function LineItemsEditor({
   onChange,
   priceMode,
 }: LineItemsEditorProps) {
+  const { t } = useI18n();
   const update = (index: number, patch: Partial<DraftLine>) => {
     onChange(
       lines.map((l, i) => {
@@ -83,7 +85,7 @@ export function LineItemsEditor({
                       update(index, { productId: e.target.value })
                     }
                   >
-                    <option value="">Choisir un produit…</option>
+                    <option value="">{t("trx.chooseProduct")}</option>
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -99,7 +101,7 @@ export function LineItemsEditor({
                       {overStock && (
                         <AlertTriangle className="mr-1 inline h-3 w-3" />
                       )}
-                      Stock : {prod.stock} {prod.unit.split(" ")[0]}
+                      {t("tbl.stock")} : {prod.stock} {prod.unit.split(" ")[0]}
                     </p>
                   )}
                 </div>
@@ -109,7 +111,7 @@ export function LineItemsEditor({
                     min="0"
                     step="1"
                     className="input"
-                    placeholder="Qté"
+                    placeholder={t("common.quantity")}
                     value={line.qty}
                     onChange={(e) => update(index, { qty: e.target.value })}
                   />
@@ -120,7 +122,7 @@ export function LineItemsEditor({
                     min="0"
                     step="0.01"
                     className="input"
-                    placeholder="Prix unit."
+                    placeholder={t("common.unitPrice")}
                     value={line.unitPrice}
                     onChange={(e) =>
                       update(index, { unitPrice: e.target.value })
@@ -133,14 +135,14 @@ export function LineItemsEditor({
                     onClick={() => removeLine(index)}
                     disabled={lines.length === 1}
                     className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-400"
-                    title="Retirer la ligne"
+                    title={t("common.delete")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
               <div className="mt-1 text-right text-xs text-slate-500">
-                Sous-total : {formatMAD(lineTotal(line))}
+                {t("trx.subtotal")} {formatMAD(lineTotal(line))}
               </div>
             </div>
           );
@@ -150,10 +152,10 @@ export function LineItemsEditor({
       <div className="flex items-center justify-between">
         <button type="button" className="btn-secondary" onClick={addLine}>
           <Plus className="h-4 w-4" />
-          Ajouter une ligne
+          {t("trx.addLine")}
         </button>
         <div className="text-sm text-slate-500">
-          Total lignes :{" "}
+          {t("trx.linesTotal")}{" "}
           <span className="font-semibold text-slate-800">
             {formatMAD(grandTotal)}
           </span>

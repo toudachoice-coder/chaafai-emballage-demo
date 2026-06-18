@@ -3,6 +3,7 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
 import { Modal } from "./Modal";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -16,13 +17,17 @@ interface ConfirmDialogProps {
 
 export function ConfirmDialog({
   open,
-  title = "Confirmer la suppression",
+  title,
   message,
-  confirmLabel = "Supprimer",
-  cancelLabel = "Annuler",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+  title = title ?? t("confirm.deleteTitle");
+  confirmLabel = confirmLabel ?? t("common.delete");
+  cancelLabel = cancelLabel ?? t("common.cancel");
   return (
     <Modal
       open={open}

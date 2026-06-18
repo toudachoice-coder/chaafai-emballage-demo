@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import type { Category, Database } from "@/lib/types";
 import { addCategory, deleteCategory } from "@/lib/store";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface CategoryManagerModalProps {
   open: boolean;
@@ -20,6 +21,7 @@ export function CategoryManagerModal({
   db,
 }: CategoryManagerModalProps) {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [name, setName] = useState("");
 
   const productCount = (catId: string) =>
@@ -33,35 +35,32 @@ export function CategoryManagerModal({
         (c) => c.name.toLowerCase() === trimmed.toLowerCase()
       )
     ) {
-      toast("Cette catégorie existe déjà.", "error");
+      toast(t("prod.catExists"), "error");
       return;
     }
     addCategory(trimmed);
     setName("");
-    toast(`Catégorie « ${trimmed} » ajoutée`);
+    toast(t("toast.catAdded", { name: trimmed }));
   };
 
   const handleDelete = (cat: Category) => {
     if (productCount(cat.id) > 0) {
-      toast(
-        "Impossible : des produits utilisent cette catégorie.",
-        "error"
-      );
+      toast(t("prod.catInUse"), "error");
       return;
     }
     deleteCategory(cat.id);
-    toast("Catégorie supprimée");
+    toast(t("toast.catDeleted"));
   };
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Gérer les catégories"
-      description="Les catégories sont dynamiques et réutilisées dans tous les modules."
+      title={t("prod.manageCats")}
+      description={t("prod.manageCatsDesc")}
       footer={
         <button className="btn-primary" onClick={onClose}>
-          Terminé
+          {t("common.done")}
         </button>
       }
     >
@@ -69,20 +68,20 @@ export function CategoryManagerModal({
         <input
           className="input"
           value={name}
-          placeholder="Nouvelle catégorie…"
+          placeholder={t("prod.newCat")}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         />
         <button className="btn-primary shrink-0" onClick={handleAdd}>
           <Plus className="h-4 w-4" />
-          Ajouter
+          {t("common.add")}
         </button>
       </div>
 
       {db.categories.length === 0 ? (
         <EmptyState
-          title="Aucune catégorie"
-          description="Ajoutez votre première catégorie ci-dessus."
+          title={t("prod.categories")}
+          description=""
           icon={<Tag className="h-8 w-8" />}
         />
       ) : (
@@ -100,17 +99,13 @@ export function CategoryManagerModal({
                 </span>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-slate-400">
-                    {count} produit{count > 1 ? "s" : ""}
+                    {count} {t("common.products")}
                   </span>
                   <button
                     onClick={() => handleDelete(cat)}
                     disabled={count > 0}
                     className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-400"
-                    title={
-                      count > 0
-                        ? "Catégorie utilisée par des produits"
-                        : "Supprimer"
-                    }
+                    title={count > 0 ? t("prod.catInUse") : t("common.delete")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

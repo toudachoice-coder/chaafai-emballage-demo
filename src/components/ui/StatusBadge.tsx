@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
 import type { PaymentStatus } from "@/lib/types";
-import { statusLabel } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const styles: Record<PaymentStatus, string> = {
   paid: "bg-brand-50 text-brand-700",
@@ -9,5 +11,8 @@ const styles: Record<PaymentStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: PaymentStatus }) {
-  return <span className={`badge ${styles[status]}`}>{statusLabel(status)}</span>;
+  const { t } = useI18n();
+  return (
+    <span className={`badge ${styles[status]}`}>{t(`status.${status}`)}</span>
+  );
 }

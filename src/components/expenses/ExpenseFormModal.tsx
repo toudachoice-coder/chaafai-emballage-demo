@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import type { Expense, ExpenseCategory, PaymentMethod } from "@/lib/types";
 import type { ExpenseInput } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "Transport",
@@ -49,6 +50,7 @@ export function ExpenseFormModal({
   onSubmit,
   expense,
 }: ExpenseFormModalProps) {
+  const { t } = useI18n();
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -95,7 +97,7 @@ export function ExpenseFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={expense ? "Modifier le frais" : "Ajouter un frais"}
+      title={expense ? t("common.edit") : t("exp.addBtn")}
       description={
         expense
           ? "Mettez à jour cette dépense."
@@ -105,17 +107,17 @@ export function ExpenseFormModal({
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {expense ? "Enregistrer" : "Ajouter le frais"}
+            {t("common.save")}
           </button>
         </>
       }
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Date</label>
+          <label className="label">{t("common.date")}</label>
           <input
             type="date"
             className="input"
@@ -128,7 +130,7 @@ export function ExpenseFormModal({
         </div>
 
         <div>
-          <label className="label">Catégorie</label>
+          <label className="label">{t("common.category")}</label>
           <select
             className="input"
             value={form.category}
@@ -143,7 +145,7 @@ export function ExpenseFormModal({
         </div>
 
         <div>
-          <label className="label">Montant (DH)</label>
+          <label className="label">{t("common.amount")} (DH)</label>
           <input
             type="number"
             min="0"
@@ -158,7 +160,7 @@ export function ExpenseFormModal({
         </div>
 
         <div>
-          <label className="label">Mode de paiement</label>
+          <label className="label">{t("field.paymentMethod")}</label>
           <select
             className="input"
             value={form.paymentMethod}
@@ -173,7 +175,7 @@ export function ExpenseFormModal({
         </div>
 
         <div className="sm:col-span-2">
-          <label className="label">Description</label>
+          <label className="label">{t("field.description")}</label>
           <input
             className="input"
             value={form.label}
@@ -186,7 +188,9 @@ export function ExpenseFormModal({
         </div>
 
         <div className="sm:col-span-2">
-          <label className="label">Notes (optionnel)</label>
+          <label className="label">
+            {t("common.notes")} {t("common.optional")}
+          </label>
           <textarea
             className="input min-h-[70px] resize-y"
             value={form.note}

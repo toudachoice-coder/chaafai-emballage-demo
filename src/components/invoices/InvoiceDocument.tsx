@@ -3,11 +3,14 @@ import { LogoMark } from "@/components/Logo";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { InvoiceView } from "@/lib/store";
 import { formatMAD, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { COMPANY } from "@/lib/company";
 
 /** Clean, A4-style printable invoice for Chaafai Emballage. */
 export function InvoiceDocument({ view }: { view: InvoiceView }) {
+  const { t, lang } = useI18n();
   const { invoice, client, clientName, items } = view;
-  const annulee = view.docStatus === "Annulée";
+  const slogan = lang === "ar" ? COMPANY.slogan.ar : COMPANY.slogan.fr;
 
   return (
     <div className="mx-auto w-full max-w-[800px] bg-white p-8 text-slate-800 sm:p-10">
@@ -19,35 +22,34 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
             <div className="text-xl font-bold tracking-tight text-slate-900">
               Chaafai <span className="text-brand-600">Emballage</span>
             </div>
-            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Solutions d&apos;emballage pour professionnels
-            </div>
+            <div className="text-xs font-medium text-slate-500">{slogan}</div>
             <div className="mt-1 text-xs text-slate-400">
-              Maroc · contact@chaafai-emballage.ma
+              {lang === "ar" ? COMPANY.country.ar : COMPANY.country.fr} ·{" "}
+              {COMPANY.email}
             </div>
           </div>
         </div>
-        <div className="text-right">
+        <div className="ltr:text-right rtl:text-left">
           <div className="text-lg font-bold uppercase tracking-wide text-slate-900">
-            Facture
+            {t("invdoc.title")}
           </div>
           <div className="mt-1 text-sm font-semibold text-brand-700">
             {invoice.number}
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            Date : {formatDate(invoice.date)}
+            {t("common.date")} : {formatDate(invoice.date)}
           </div>
-          <div className="mt-2 flex justify-end">
+          <div className="mt-2 flex ltr:justify-end rtl:justify-start">
             <span
               className={`badge ${
-                annulee
+                view.docStatus === "Annulée"
                   ? "bg-red-50 text-red-700"
                   : view.docStatus === "Brouillon"
                   ? "bg-slate-100 text-slate-600"
                   : "bg-brand-50 text-brand-700"
               }`}
             >
-              {view.docStatus}
+              {t(`doc.${view.docStatus}`)}
             </span>
           </div>
         </div>
@@ -57,33 +59,37 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
       <div className="grid grid-cols-1 gap-6 py-6 sm:grid-cols-2">
         <div>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Facturé à
+            {t("invdoc.billedTo")}
           </div>
           <div className="text-base font-semibold text-slate-900">
             {clientName}
           </div>
           {client?.phone && (
-            <div className="text-sm text-slate-600">Tél : {client.phone}</div>
+            <div className="text-sm text-slate-600">
+              {t("field.phone")} : {client.phone}
+            </div>
           )}
           {client?.address && (
             <div className="text-sm text-slate-600">{client.address}</div>
           )}
           {client?.ice && (
-            <div className="text-sm text-slate-600">ICE : {client.ice}</div>
+            <div className="text-sm text-slate-600">
+              {t("field.ice")} : {client.ice}
+            </div>
           )}
         </div>
-        <div className="sm:text-right">
+        <div className="sm:ltr:text-right sm:rtl:text-left">
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Détails
+            {t("invdoc.details")}
           </div>
           <div className="text-sm text-slate-600">
-            Référence vente :{" "}
+            {t("invdoc.saleRef")} :{" "}
             <span className="font-medium text-slate-800">
               {invoice.saleId ?? "—"}
             </span>
           </div>
           <div className="text-sm text-slate-600">
-            Statut paiement :{" "}
+            {t("invdoc.payStatus")} :{" "}
             <span className="font-medium">
               <StatusBadge status={view.paymentStatus} />
             </span>
@@ -95,15 +101,17 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-            <th className="border border-slate-200 px-3 py-2">Désignation</th>
-            <th className="border border-slate-200 px-3 py-2 text-right">
-              Qté
+            <th className="border border-slate-200 px-3 py-2">
+              {t("invdoc.designation")}
             </th>
             <th className="border border-slate-200 px-3 py-2 text-right">
-              P.U. (DH)
+              {t("invdoc.qty")}
             </th>
             <th className="border border-slate-200 px-3 py-2 text-right">
-              Total (DH)
+              {t("invdoc.unitPriceDH")}
+            </th>
+            <th className="border border-slate-200 px-3 py-2 text-right">
+              {t("invdoc.totalDH")}
             </th>
           </tr>
         </thead>
@@ -114,7 +122,7 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
                 colSpan={4}
                 className="border border-slate-200 px-3 py-4 text-center text-slate-400"
               >
-                Aucune ligne
+                {t("invdoc.noLine")}
               </td>
             </tr>
           ) : (
@@ -139,23 +147,26 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
       </table>
 
       {/* Totals */}
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex ltr:justify-end rtl:justify-start">
         <div className="w-full max-w-xs space-y-1.5 text-sm">
           {view.discount > 0 && (
-            <Row label="Remise" value={`- ${formatMAD(view.discount)}`} />
+            <Row
+              label={t("invdoc.discount")}
+              value={`- ${formatMAD(view.discount)}`}
+            />
           )}
-          <Row label="Total HT" value={formatMAD(view.totalHT)} />
+          <Row label={t("invdoc.totalHT")} value={formatMAD(view.totalHT)} />
           <Row
-            label={`TVA (${Math.round(view.tvaRate * 100)} %)`}
+            label={`${t("invdoc.tva")} (${Math.round(view.tvaRate * 100)} %)`}
             value={formatMAD(view.tvaAmount)}
           />
           <div className="flex items-center justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900">
-            <span>Total TTC</span>
+            <span>{t("invdoc.totalTTC")}</span>
             <span>{formatMAD(view.totalTTC)}</span>
           </div>
-          <Row label="Montant payé" value={formatMAD(view.paid)} />
+          <Row label={t("invdoc.amountPaid")} value={formatMAD(view.paid)} />
           <div className="flex items-center justify-between font-semibold">
-            <span className="text-slate-600">Reste à payer</span>
+            <span className="text-slate-600">{t("invdoc.remaining")}</span>
             <span className={view.reste > 0 ? "text-red-600" : "text-brand-700"}>
               {formatMAD(view.reste)}
             </span>
@@ -166,7 +177,9 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
       {/* Notes */}
       {invoice.notes && (
         <div className="mt-6 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
-          <span className="font-medium text-slate-700">Notes : </span>
+          <span className="font-medium text-slate-700">
+            {t("common.notes")} :{" "}
+          </span>
           {invoice.notes}
         </div>
       )}
@@ -174,14 +187,19 @@ export function InvoiceDocument({ view }: { view: InvoiceView }) {
       {/* Signature + footer */}
       <div className="mt-10 grid grid-cols-2 gap-6">
         <div className="text-xs text-slate-400">
-          <p>Merci pour votre confiance.</p>
-          <p>Chaafai Emballage — Solutions d&apos;emballage pour professionnels.</p>
+          <p>{t("invdoc.thanks")}</p>
+          <p className="mt-2 font-medium text-slate-500">
+            {t("invdoc.managers")} :
+          </p>
+          {COMPANY.managers.map((m) => (
+            <p key={m.fr}>{lang === "ar" ? m.ar : m.fr}</p>
+          ))}
         </div>
-        <div className="text-right">
+        <div className="ltr:text-right rtl:text-left">
           <div className="mb-12 text-sm font-medium text-slate-600">
-            Cachet &amp; Signature
+            {t("invdoc.signature")}
           </div>
-          <div className="ml-auto h-px w-40 bg-slate-300" />
+          <div className="h-px w-40 bg-slate-300 ltr:ml-auto rtl:mr-auto" />
         </div>
       </div>
     </div>

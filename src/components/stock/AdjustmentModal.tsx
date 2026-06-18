@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import type { Product } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface AdjustmentModalProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function AdjustmentModal({
   onSubmit,
   products,
 }: AdjustmentModalProps) {
+  const { t } = useI18n();
   const [productId, setProductId] = useState("");
   const [direction, setDirection] = useState<"in" | "out">("in");
   const [qty, setQty] = useState("");
@@ -50,28 +52,28 @@ export function AdjustmentModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Ajustement de stock"
+      title={t("stk.adjustTitle")}
       description="Corrigez manuellement le stock (inventaire, casse, perte…)."
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            Valider l&apos;ajustement
+            {t("common.save")}
           </button>
         </>
       }
     >
       <div className="space-y-4">
         <div>
-          <label className="label">Produit</label>
+          <label className="label">{t("tbl.product")}</label>
           <select
             className="input"
             value={productId}
             onChange={(e) => setProductId(e.target.value)}
           >
-            <option value="">Choisir un produit…</option>
+            <option value="">{t("trx.chooseProduct")}</option>
             {products.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -80,25 +82,26 @@ export function AdjustmentModal({
           </select>
           {selected && (
             <p className="mt-1 text-xs text-slate-400">
-              Stock actuel : {selected.stock} {selected.unit.split(" ")[0]}
+              {t("field.currentStock")} : {selected.stock}{" "}
+              {selected.unit.split(" ")[0]}
             </p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">Type d&apos;ajustement</label>
+            <label className="label">{t("field.adjustType")}</label>
             <select
               className="input"
               value={direction}
               onChange={(e) => setDirection(e.target.value as "in" | "out")}
             >
-              <option value="in">Entrée (+)</option>
-              <option value="out">Sortie (−)</option>
+              <option value="in">{t("stk.entryIn")}</option>
+              <option value="out">{t("stk.exitOut")}</option>
             </select>
           </div>
           <div>
-            <label className="label">Quantité</label>
+            <label className="label">{t("common.quantity")}</label>
             <input
               type="number"
               min="1"
@@ -111,7 +114,7 @@ export function AdjustmentModal({
         </div>
 
         <div>
-          <label className="label">Raison / notes</label>
+          <label className="label">{t("field.reasonNotes")}</label>
           <textarea
             className="input min-h-[70px] resize-y"
             value={reason}

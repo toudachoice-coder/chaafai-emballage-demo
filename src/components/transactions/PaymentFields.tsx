@@ -3,6 +3,7 @@
 import React from "react";
 import type { PaymentStatus } from "@/lib/types";
 import { formatMAD } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface PaymentFieldsProps {
   total: number;
@@ -20,6 +21,7 @@ export function PaymentFields({
   onStatusChange,
   onPaidChange,
 }: PaymentFieldsProps) {
+  const { t } = useI18n();
   const paid =
     status === "paid" ? total : status === "unpaid" ? 0 : Number(paidAmount) || 0;
   const reste = Math.max(total - paid, 0);
@@ -27,19 +29,19 @@ export function PaymentFields({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div>
-        <label className="label">Statut paiement</label>
+        <label className="label">{t("field.paymentStatus")}</label>
         <select
           className="input"
           value={status}
           onChange={(e) => onStatusChange(e.target.value as PaymentStatus)}
         >
-          <option value="paid">Payé</option>
-          <option value="partial">Partiel</option>
-          <option value="unpaid">Non payé</option>
+          <option value="paid">{t("status.paid")}</option>
+          <option value="partial">{t("status.partial")}</option>
+          <option value="unpaid">{t("status.unpaid")}</option>
         </select>
       </div>
       <div>
-        <label className="label">Montant payé (DH)</label>
+        <label className="label">{t("field.amountPaid")}</label>
         <input
           type="number"
           min="0"
@@ -51,7 +53,7 @@ export function PaymentFields({
         />
       </div>
       <div>
-        <label className="label">Reste à payer</label>
+        <label className="label">{t("field.remainingToPay")}</label>
         <div
           className={`input flex items-center font-semibold ${
             reste > 0 ? "text-red-600" : "text-brand-700"

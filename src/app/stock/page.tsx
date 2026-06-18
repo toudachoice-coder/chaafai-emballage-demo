@@ -16,17 +16,18 @@ import { useDatabase } from "@/hooks/useDatabase";
 import { addAdjustment, productName } from "@/lib/store";
 import type { StockMovement } from "@/lib/types";
 import { formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
-/** Human label for the movement's business origin. */
-function movementKind(m: StockMovement): string {
-  if (m.kind === "achat") return "Achat";
-  if (m.kind === "vente") return "Vente";
-  if (m.kind === "ajustement") return "Ajustement";
-  if (m.kind === "initial") return "Stock initial";
+/** Translation key for the movement's business origin. */
+function movementKindKey(m: StockMovement): string {
+  if (m.kind === "achat") return "stk.kindAchat";
+  if (m.kind === "vente") return "stk.kindVente";
+  if (m.kind === "ajustement") return "stk.kindAjust";
+  if (m.kind === "initial") return "stk.kindInitial";
   // Legacy records without `kind`.
-  if (m.type === "in") return "Entrée";
-  if (m.type === "out") return "Sortie";
-  return "Ajustement";
+  if (m.type === "in") return "tbl.entry";
+  if (m.type === "out") return "tbl.exit";
+  return "stk.kindAjust";
 }
 
 function kindFilterValue(m: StockMovement): string {
@@ -39,6 +40,7 @@ function kindFilterValue(m: StockMovement): string {
 export default function StockPage() {
   const { db, ready } = useDatabase();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [typeFilter, setTypeFilter] = useState("all");
   const [productFilter, setProductFilter] = useState("all");
@@ -70,10 +72,10 @@ export default function StockPage() {
   ) => {
     const res = addAdjustment(productId, direction, qty, reason);
     if (!res.ok) {
-      toast(res.error ?? "Ajustement impossible.", "error");
+      toast(res.error ?? t("toast.genericError"), "error");
       return;
     }
-    toast("Stock ajusté");
+    toast(t("toast.stockAdjusted"));
     setAdjustOpen(false);
   };
 
@@ -81,13 +83,13 @@ export default function StockPage() {
 
   return (
     <AppShell
-      title="Mouvements de stock"
-      subtitle="Historique des entrées et sorties"
+      title={t("page.stock.title")}
+      subtitle={t("page.stock.subtitle")}
       actions={
         <button className="btn-primary" onClick={() => setAdjustOpen(true)}>
           <SlidersHorizontal className="h-4 w-4" />
-          <span className="hidden sm:inline">Ajuster le stock</span>
-          <span className="sm:hidden">Ajuster</span>
+          <span className="hidden sm:inline">{t("stk.adjustBtn")}</span>
+          <span className="sm:hidden">{t("common.edit")}</span>
         </button>
       }
     >
@@ -102,17 +104,17 @@ export default function StockPage() {
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
             >
-              <option value="all">Tous les types</option>
-              <option value="achat">Achat</option>
-              <option value="vente">Vente</option>
-              <option value="ajustement">Ajustement</option>
+              <option value="all">{t("stk.allTypes")}</option>
+              <option value="achat">{t("stk.kindAchat")}</option>
+              <option value="vente">{t("stk.kindVente")}</option>
+              <option value="ajustement">{t("stk.kindAjust")}</option>
             </select>
             <select
               className="input"
               value={productFilter}
               onChange={(e) => setProductFilter(e.target.value)}
             >
-              <option value="all">Tous les produits</option>
+              <option value="all">{t("stk.allProducts")}</option>
               {db.products.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -124,28 +126,28 @@ export default function StockPage() {
               className="input"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              aria-label="Date de début"
+              aria-label={t("exp.from")}
             />
             <input
               type="date"
               className="input"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              aria-label="Date de fin"
+              aria-label={t("exp.to")}
             />
           </div>
 
           <div className="card overflow-hidden">
             {db.movements.length === 0 ? (
               <EmptyState
-                title="Aucun mouvement"
-                description="Les entrées et sorties de stock apparaîtront ici."
+                title={t("stk.empty")}
+                description={t("stk.emptyDesc")}
                 icon={<Boxes className="h-8 w-8" />}
               />
             ) : filtered.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Aucun mouvement ne correspond à ces filtres."
+                title={t("empty.noResult")}
+                description={t("empty.noResultDesc")}
                 icon={<Search className="h-8 w-8" />}
               />
             ) : (
@@ -153,14 +155,14 @@ export default function StockPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                      <th className="px-5 py-3">Date</th>
-                      <th className="px-5 py-3">Type</th>
-                      <th className="px-5 py-3">Produit</th>
-                      <th className="px-5 py-3 text-right">Entrée</th>
-                      <th className="px-5 py-3 text-right">Sortie</th>
-                      <th className="px-5 py-3 text-right">Avant</th>
-                      <th className="px-5 py-3 text-right">Après</th>
-                      <th className="px-5 py-3">Référence / Notes</th>
+                      <th className="px-5 py-3">{t("common.date")}</th>
+                      <th className="px-5 py-3">{t("tbl.type")}</th>
+                      <th className="px-5 py-3">{t("tbl.product")}</th>
+                      <th className="px-5 py-3 text-right">{t("tbl.entry")}</th>
+                      <th className="px-5 py-3 text-right">{t("tbl.exit")}</th>
+                      <th className="px-5 py-3 text-right">{t("tbl.before")}</th>
+                      <th className="px-5 py-3 text-right">{t("tbl.after")}</th>
+                      <th className="px-5 py-3">{t("tbl.refNotes")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -189,7 +191,7 @@ export default function StockPage() {
                               ) : (
                                 <ArrowUpRight className="h-3 w-3" />
                               )}
-                              {movementKind(m)}
+                              {t(movementKindKey(m))}
                             </span>
                           </td>
                           <td className="px-5 py-3 font-medium text-slate-800">

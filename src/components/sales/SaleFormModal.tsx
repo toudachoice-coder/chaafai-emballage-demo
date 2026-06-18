@@ -12,6 +12,7 @@ import { PaymentFields } from "@/components/transactions/PaymentFields";
 import type { Client, PaymentStatus, Product, Sale } from "@/lib/types";
 import type { SaleInput } from "@/lib/store";
 import { formatMAD } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const todayInput = () => new Date().toISOString().slice(0, 10);
 
@@ -32,6 +33,7 @@ export function SaleFormModal({
   products,
   sale,
 }: SaleFormModalProps) {
+  const { t } = useI18n();
   const [date, setDate] = useState(todayInput());
   const [clientId, setClientId] = useState("");
   const [lines, setLines] = useState<DraftLine[]>([emptyLine()]);
@@ -101,16 +103,16 @@ export function SaleFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={sale ? "Modifier la vente" : "Nouvelle vente"}
+      title={sale ? t("common.edit") : t("sell.addBtn")}
       description="L'enregistrement diminue automatiquement le stock."
       size="lg"
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {sale ? "Enregistrer" : "Enregistrer la vente"}
+            {t("common.save")}
           </button>
         </>
       }
@@ -118,7 +120,7 @@ export function SaleFormModal({
       <div className="space-y-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="label">Date</label>
+            <label className="label">{t("common.date")}</label>
             <input
               type="date"
               className="input"
@@ -127,13 +129,13 @@ export function SaleFormModal({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="label">Client</label>
+            <label className="label">{t("common.client")}</label>
             <select
               className="input"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
             >
-              <option value="">Choisir un client…</option>
+              <option value="">{t("trx.chooseClient")}</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -144,7 +146,7 @@ export function SaleFormModal({
         </div>
 
         <div>
-          <label className="label">Produits</label>
+          <label className="label">{t("common.products")}</label>
           <LineItemsEditor
             products={products}
             lines={lines}
@@ -155,7 +157,7 @@ export function SaleFormModal({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="label">Remise (DH, optionnel)</label>
+            <label className="label">{t("field.discount")}</label>
             <input
               type="number"
               min="0"
@@ -166,7 +168,7 @@ export function SaleFormModal({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="label">Total net</label>
+            <label className="label">{t("field.netTotal")}</label>
             <div className="input flex items-center justify-between font-semibold text-slate-800">
               <span>{formatMAD(total)}</span>
               {Number(discount) > 0 && (
@@ -187,7 +189,9 @@ export function SaleFormModal({
         />
 
         <div>
-          <label className="label">Notes (optionnel)</label>
+          <label className="label">
+            {t("common.notes")} {t("common.optional")}
+          </label>
           <textarea
             className="input min-h-[70px] resize-y"
             value={note}

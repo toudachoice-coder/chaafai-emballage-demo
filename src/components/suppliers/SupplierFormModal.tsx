@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import type { Category, Supplier } from "@/lib/types";
 import type { SupplierInput } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface SupplierFormModalProps {
   open: boolean;
@@ -30,6 +31,7 @@ export function SupplierFormModal({
   categories,
   supplier,
 }: SupplierFormModalProps) {
+  const { t } = useI18n();
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -76,7 +78,7 @@ export function SupplierFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={supplier ? "Modifier le fournisseur" : "Ajouter un fournisseur"}
+      title={supplier ? t("sup.formEditTitle") : t("sup.formAddTitle")}
       description={
         supplier
           ? "Mettez à jour les informations du fournisseur."
@@ -86,17 +88,17 @@ export function SupplierFormModal({
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {supplier ? "Enregistrer" : "Ajouter le fournisseur"}
+            {t("common.save")}
           </button>
         </>
       }
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label className="label">Nom</label>
+          <label className="label">{t("field.name")}</label>
           <input
             className="input"
             value={form.name}
@@ -109,7 +111,7 @@ export function SupplierFormModal({
         </div>
 
         <div>
-          <label className="label">Catégorie principale</label>
+          <label className="label">{t("field.mainCategory")}</label>
           <input
             className="input"
             list="supplier-categories"
@@ -125,7 +127,7 @@ export function SupplierFormModal({
         </div>
 
         <div>
-          <label className="label">Téléphone</label>
+          <label className="label">{t("field.phone")}</label>
           <input
             className="input"
             value={form.phone}
@@ -138,7 +140,9 @@ export function SupplierFormModal({
         </div>
 
         <div>
-          <label className="label">Email (optionnel)</label>
+          <label className="label">
+            {t("field.email")} {t("common.optional")}
+          </label>
           <input
             className="input"
             value={form.email}
@@ -148,7 +152,9 @@ export function SupplierFormModal({
         </div>
 
         <div>
-          <label className="label">ICE (optionnel)</label>
+          <label className="label">
+            {t("field.ice")} {t("common.optional")}
+          </label>
           <input
             className="input"
             value={form.ice}
@@ -158,7 +164,9 @@ export function SupplierFormModal({
         </div>
 
         <div className="sm:col-span-2">
-          <label className="label">Adresse (optionnel)</label>
+          <label className="label">
+            {t("field.address")} {t("common.optional")}
+          </label>
           <input
             className="input"
             value={form.address}
@@ -168,7 +176,9 @@ export function SupplierFormModal({
         </div>
 
         <div className="sm:col-span-2">
-          <label className="label">Notes (optionnel)</label>
+          <label className="label">
+            {t("common.notes")} {t("common.optional")}
+          </label>
           <textarea
             className="input min-h-[80px] resize-y"
             value={form.notes}

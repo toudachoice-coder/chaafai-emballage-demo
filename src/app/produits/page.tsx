@@ -27,12 +27,14 @@ import {
 } from "@/lib/store";
 import type { Product } from "@/lib/types";
 import { formatMAD } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type SortKey = "name" | "stock" | "sellPrice";
 
 export default function ProductsPage() {
   const { db, ready } = useDatabase();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -86,10 +88,10 @@ export default function ProductsPage() {
   const handleSubmit = (input: ProductInput) => {
     if (editing) {
       updateProduct(editing.id, input);
-      toast(`« ${input.name} » mis à jour`);
+      toast(t("toast.updated", { name: input.name }));
     } else {
       addProduct(input);
-      toast(`« ${input.name} » ajouté au catalogue`);
+      toast(t("toast.added", { name: input.name }));
     }
     setFormOpen(false);
     setEditing(null);
@@ -98,14 +100,14 @@ export default function ProductsPage() {
   const confirmDelete = () => {
     if (!deleteTarget) return;
     deleteProduct(deleteTarget.id);
-    toast(`« ${deleteTarget.name} » supprimé`);
+    toast(t("toast.deleted", { name: deleteTarget.name }));
     setDeleteTarget(null);
   };
 
   return (
     <AppShell
-      title="Produits"
-      subtitle="Gérez votre catalogue de produits d'emballage"
+      title={t("page.produits.title")}
+      subtitle={t("page.produits.subtitle")}
       actions={
         <>
           <button
@@ -113,12 +115,12 @@ export default function ProductsPage() {
             onClick={() => setCategoriesOpen(true)}
           >
             <Tag className="h-4 w-4" />
-            Catégories
+            {t("prod.categories")}
           </button>
           <button className="btn-primary" onClick={openAdd}>
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Ajouter un produit</span>
-            <span className="sm:hidden">Ajouter</span>
+            <span className="hidden sm:inline">{t("prod.addBtn")}</span>
+            <span className="sm:hidden">{t("common.add")}</span>
           </button>
         </>
       }
@@ -133,7 +135,7 @@ export default function ProductsPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 className="input pl-9"
-                placeholder="Rechercher par nom ou référence…"
+                placeholder={t("prod.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -143,7 +145,7 @@ export default function ProductsPage() {
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{t("prod.allCategories")}</option>
               {db.categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -155,35 +157,37 @@ export default function ProductsPage() {
               onClick={() => setCategoriesOpen(true)}
             >
               <Tag className="h-4 w-4" />
-              Gérer les catégories
+              {t("prod.manageCats")}
             </button>
           </div>
 
           <p className="text-sm text-slate-500">
-            {filtered.length} produit{filtered.length > 1 ? "s" : ""} affiché
-            {filtered.length > 1 ? "s" : ""}
-            {db.products.length !== filtered.length &&
-              ` sur ${db.products.length}`}
+            {db.products.length !== filtered.length
+              ? t("prod.shownOf", {
+                  n: filtered.length,
+                  total: db.products.length,
+                })
+              : t("prod.shown", { n: filtered.length })}
           </p>
 
           {/* Table */}
           <div className="card overflow-hidden">
             {db.products.length === 0 ? (
               <EmptyState
-                title="Aucun produit"
-                description="Commencez par ajouter votre premier produit au catalogue."
+                title={t("prod.empty")}
+                description={t("prod.emptyDesc")}
                 icon={<Package className="h-8 w-8" />}
                 action={
                   <button className="btn-primary" onClick={openAdd}>
                     <Plus className="h-4 w-4" />
-                    Ajouter un produit
+                    {t("prod.addBtn")}
                   </button>
                 }
               />
             ) : filtered.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Aucun produit ne correspond à votre recherche."
+                title={t("empty.noResult")}
+                description={t("empty.noResultDesc")}
                 icon={<Search className="h-8 w-8" />}
               />
             ) : (
@@ -193,17 +197,17 @@ export default function ProductsPage() {
                     <tr>
                       <th className="px-5 py-3">
                         <SortButton
-                          label="Produit"
+                          label={t("tbl.product")}
                           active={sortKey === "name"}
                           asc={sortAsc}
                           onClick={() => toggleSort("name")}
                         />
                       </th>
-                      <th className="px-5 py-3">Catégorie</th>
-                      <th className="px-5 py-3 text-right">Prix achat</th>
+                      <th className="px-5 py-3">{t("tbl.category")}</th>
+                      <th className="px-5 py-3 text-right">{t("tbl.buyPrice")}</th>
                       <th className="px-5 py-3 text-right">
                         <SortButton
-                          label="Prix vente"
+                          label={t("tbl.sellPrice")}
                           active={sortKey === "sellPrice"}
                           asc={sortAsc}
                           onClick={() => toggleSort("sellPrice")}
@@ -212,14 +216,14 @@ export default function ProductsPage() {
                       </th>
                       <th className="px-5 py-3 text-right">
                         <SortButton
-                          label="Stock"
+                          label={t("tbl.stock")}
                           active={sortKey === "stock"}
                           asc={sortAsc}
                           onClick={() => toggleSort("stock")}
                           alignRight
                         />
                       </th>
-                      <th className="px-5 py-3 text-right">Actions</th>
+                      <th className="px-5 py-3 text-right">{t("common.actions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -273,14 +277,14 @@ export default function ProductsPage() {
                               <button
                                 onClick={() => openEdit(p)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
-                                title="Modifier"
+                                title={t("common.edit")}
                               >
                                 <Pencil className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget(p)}
                                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                                title="Supprimer"
+                                title={t("common.delete")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -318,7 +322,7 @@ export default function ProductsPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        message={`Voulez-vous vraiment supprimer « ${deleteTarget?.name} » ? Cette action est irréversible.`}
+        message={t("confirm.deleteItem", { name: deleteTarget?.name ?? "" })}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />
